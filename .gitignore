@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+venv/
+__pycache__/
+*.py[cod]
+
+# Environment
+.env
+.env.local
+
+# Database
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+data/
+
+# Build
+frontend/dist/
+*.egg-info/
+
+# Uploads
+uploads/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets / keys
+key-pair/
+*.pem
