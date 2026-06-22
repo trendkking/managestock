@@ -145,3 +145,11 @@ MANAGESTOCK/
 
 - **Frontend:** React 18, Vite, TypeScript, Tailwind CSS, Zustand, Recharts
 - **Backend:** FastAPI, SQLAlchemy, SQLite
+
+## 프로덕션 · 자동 배포
+
+- **서비스:** https://bullslong.com
+- **CI/CD:** `main` push → GitHub Actions 테스트 → EC2 자동 배포
+- **설정 가이드:** [deploy/README.md](deploy/README.md)
+
+GitHub Secrets (`EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`) 등록 후 `main`에 push하면 배포가 실행됩니다.

@@ -225,11 +225,23 @@ VITE_USE_MOCK=false
 
 ## 7. 프로덕션 배포 방법 (업데이트 시)
 
+### 자동 배포 (권장)
+
+`main` 브랜치에 push하면 GitHub Actions가 테스트 후 EC2에 배포합니다.  
+설정: [deploy/README.md](deploy/README.md)
+
+### 수동 배포
+
 ```bash
 # 1. 코드 반영
 cd /var/www/bullslong
 git pull
 
+# 또는 배포 스크립트 한 번에
+bash scripts/deploy.sh
+```
+
+```bash
 # 2. 프론트엔드 빌드
 cd frontend
 npm install
