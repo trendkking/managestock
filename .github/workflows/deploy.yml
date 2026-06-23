@@ -38,30 +38,28 @@ jobs:
           SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
         run: |
           set -euo pipefail
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
+          mkdir -p "${HOME}/.ssh"
+          chmod 700 "${HOME}/.ssh"
 
-          # 줄 앞뒤 공백 제거 (복사 시 흔한 오류)
           printf '%s\n' "${SERVER_SSH_KEY}" \
             | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' \
             | sed '/^$/d' \
-            > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
+            > "${HOME}/.ssh/deploy_key"
+          chmod 600 "${HOME}/.ssh/deploy_key"
+          echo "DEPLOY_KEY_PATH=${HOME}/.ssh/deploy_key" >> "${GITHUB_ENV}"
 
-          first_line=$(head -n 1 ~/.ssh/deploy_key)
-          last_line=$(tail -n 1 ~/.ssh/deploy_key)
+          first_line=$(head -n 1 "${HOME}/.ssh/deploy_key")
+          last_line=$(tail -n 1 "${HOME}/.ssh/deploy_key")
           echo "Key header: ${first_line}"
           echo "Key footer: ${last_line}"
 
           if [[ "${first_line}" != -----BEGIN* ]] || [[ "${last_line}" != -----END* ]]; then
             echo "❌ ERROR: SSH key must start with -----BEGIN and end with -----END"
-            echo "→ PEM 파일 전체를 공백 없이 다시 붙여넣으세요."
             exit 1
           fi
 
-          if ! ssh-keygen -y -f ~/.ssh/deploy_key >/dev/null 2>&1; then
+          if ! ssh-keygen -y -f "${HOME}/.ssh/deploy_key" >/dev/null 2>&1; then
             echo "❌ ERROR: SERVER_SSH_KEY is not a valid private key."
-            echo "→ 줄 앞 공백 없이 BEGIN~END 전체를 다시 등록하세요."
             exit 1
           fi
           echo "✅ SSH private key format OK"
@@ -72,56 +70,50 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
           set -euo pipefail
-          ssh-keyscan -H "${SERVER_HOST}" >> ~/.ssh/known_hosts 2>/dev/null || true
-          if ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o ConnectTimeout=20 \
-            "${SERVER_USER}@${SERVER_HOST}" 'echo "✅ SSH connection OK"'; then
-            echo "✅ Server reachable"
-          else
-            echo "❌ ERROR: SSH authentication failed."
-            echo "→ EC2 보안그룹(22), SERVER_HOST, SERVER_USER, SERVER_SSH_KEY 를 확인하세요."
+          ssh-keyscan -H "${SERVER_HOST}" >> "${HOME}/.ssh/known_hosts" 2>/dev/null || true
+          ssh -i "${DEPLOY_KEY_PATH}" -o BatchMode=yes -o ConnectTimeout=20 \
+            "${SERVER_USER}@${SERVER_HOST}" 'echo "✅ SSH connection OK"'
+
+      - name: Deploy to server
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "${DEPLOY_KEY_PATH}" -o BatchMode=yes -o ConnectTimeout=20 \
+            "${SERVER_USER}@${SERVER_HOST}" << 'REMOTE'
+          set -euo pipefail
+
+          APP_DIR="/var/www/bullslong"
+          REPO_URL="https://github.com/trendkking/managestock.git"
+
+          export PATH="${PATH}:/usr/local/bin:${HOME}/.local/bin"
+          if [ -s "${HOME}/.nvm/nvm.sh" ]; then
+            source "${HOME}/.nvm/nvm.sh"
+          fi
+
+          echo "==> Prepare app directory"
+          if [ ! -d "${APP_DIR}/.git" ]; then
+            sudo mkdir -p "${APP_DIR}"
+            sudo chown -R "$(whoami):$(whoami)" "${APP_DIR}"
+            git clone "${REPO_URL}" "${APP_DIR}"
+          fi
+
+          cd "${APP_DIR}"
+
+          echo "==> Sync latest code"
+          git fetch origin main
+          git checkout main
+          git reset --hard origin/main
+
+          if [ ! -f deploy.sh ]; then
+            echo "❌ ERROR: deploy.sh missing after sync"
             exit 1
           fi
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key_path: ~/.ssh/deploy_key
-          script_stop: true
-          command_timeout: 15m
-          script: |
-            set -euo pipefail
-
-            APP_DIR="/var/www/bullslong"
-            REPO_URL="https://github.com/trendkking/managestock.git"
-
-            export PATH="${PATH}:/usr/local/bin:${HOME}/.local/bin"
-            if [ -s "${HOME}/.nvm/nvm.sh" ]; then
-              source "${HOME}/.nvm/nvm.sh"
-            fi
-
-            echo "==> Prepare app directory"
-            if [ ! -d "${APP_DIR}/.git" ]; then
-              sudo mkdir -p "${APP_DIR}"
-              sudo chown -R "$(whoami):$(whoami)" "${APP_DIR}"
-              git clone "${REPO_URL}" "${APP_DIR}"
-            fi
-
-            cd "${APP_DIR}"
-
-            echo "==> Sync latest code"
-            git fetch origin main
-            git checkout main
-            git reset --hard origin/main
-
-            if [ ! -f deploy.sh ]; then
-              echo "❌ ERROR: deploy.sh missing after sync"
-              exit 1
-            fi
-
-            chmod +x deploy.sh
-            bash deploy.sh
+          chmod +x deploy.sh
+          bash deploy.sh
+          REMOTE
 
       - name: Deployment succeeded
         if: success()
@@ -132,4 +124,3 @@ jobs:
         run: |
           echo "❌ Deployment failed."
           echo "→ 위 단계 로그에서 ❌ 가 표시된 단계를 확인하세요."
-          echo "  1) Validate secrets  2) Prepare SSH key  3) Test SSH connection  4) Deploy via SSH"
