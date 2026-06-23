@@ -16,6 +16,9 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Validate secrets
         env:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
@@ -64,6 +67,23 @@ jobs:
           fi
           echo "✅ SSH private key format OK"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          set -euo pipefail
+          cp .env.production.example .env
+          npm ci
+          npm run build
+          test -f dist/index.html
+          echo "✅ frontend dist ready ($(du -sh dist | cut -f1))"
+
       - name: Test SSH connection
         env:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
@@ -80,40 +100,33 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
           set -euo pipefail
-          ssh -i "${DEPLOY_KEY_PATH}" -o BatchMode=yes -o ConnectTimeout=20 \
-            "${SERVER_USER}@${SERVER_HOST}" << 'REMOTE'
-          set -euo pipefail
+          ssh-keyscan -H "${SERVER_HOST}" >> "${HOME}/.ssh/known_hosts" 2>/dev/null || true
+          SSH_OPTS=(-i "${DEPLOY_KEY_PATH}" -o BatchMode=yes -o ConnectTimeout=20)
+          TARGET="${SERVER_USER}@${SERVER_HOST}"
+          APP_DIR="/var/www/bullslong"
 
+          echo "==> Sync repo on server"
+          ssh "${SSH_OPTS[@]}" "${TARGET}" << 'REMOTE'
+          set -euo pipefail
           APP_DIR="/var/www/bullslong"
           REPO_URL="https://github.com/trendkking/managestock.git"
-
-          export PATH="${PATH}:/usr/local/bin:${HOME}/.local/bin"
-          if [ -s "${HOME}/.nvm/nvm.sh" ]; then
-            source "${HOME}/.nvm/nvm.sh"
-          fi
-
-          echo "==> Prepare app directory"
           if [ ! -d "${APP_DIR}/.git" ]; then
             sudo mkdir -p "${APP_DIR}"
             sudo chown -R "$(whoami):$(whoami)" "${APP_DIR}"
             git clone "${REPO_URL}" "${APP_DIR}"
           fi
-
           cd "${APP_DIR}"
-
-          echo "==> Sync latest code"
           git fetch origin main
           git checkout main
           git reset --hard origin/main
-
-          if [ ! -f deploy.sh ]; then
-            echo "❌ ERROR: deploy.sh missing after sync"
-            exit 1
-          fi
-
-          chmod +x deploy.sh
-          bash deploy.sh
           REMOTE
+
+          echo "==> Upload frontend dist"
+          ssh "${SSH_OPTS[@]}" "${TARGET}" "mkdir -p ${APP_DIR}/frontend/dist"
+          scp -r "${SSH_OPTS[@]}" frontend/dist/* "${TARGET}:${APP_DIR}/frontend/dist/"
+
+          echo "==> Run deploy.sh on server"
+          ssh "${SSH_OPTS[@]}" "${TARGET}" "cd ${APP_DIR} && chmod +x deploy.sh && SKIP_FRONTEND_BUILD=1 bash deploy.sh"
 
       - name: Deployment succeeded
         if: success()

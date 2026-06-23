@@ -59,7 +59,8 @@ ssh-keygen -p -m PEM -f my-key.pem
 1. `git pull origin main`
 2. `alembic upgrade head`
 3. `pip install -r backend/requirements.txt`
-4. `pm2 restart all`
+4. 프론트엔드 빌드 (CI에서 빌드한 경우 `SKIP_FRONTEND_BUILD=1`로 생략)
+5. `pm2 restart all` 또는 `systemctl restart bullslong-backend`
 
 ## 수동 배포
 
