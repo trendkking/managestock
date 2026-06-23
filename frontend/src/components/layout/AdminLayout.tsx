@@ -22,7 +22,7 @@ export function AdminLayout() {
         <div className="flex h-16 items-center gap-2 border-b border-slate-800 px-5">
           <Shield className="h-6 w-6 text-amber-400" />
           <div>
-            <p className="text-sm font-bold">MANAGESTOCK</p>
+            <p className="text-sm font-bold">BULLSLONG</p>
             <p className="text-xs text-slate-400">관리자</p>
           </div>
         </div>

@@ -14,7 +14,7 @@ CUTOFF = date(2026, 4, 1)
 
 
 def main() -> None:
-    engine = create_engine("sqlite:///managestock.db")
+    engine = create_engine("sqlite:///bullslong.db")
     with Session(engine) as db:
         user = db.scalar(select(User).where(User.email == "test@gmail.com"))
         comp = db.scalar(select(Competition).where(Competition.name.like("%Q2%")))

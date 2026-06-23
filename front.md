@@ -8,7 +8,7 @@
 ## 1. 개요
 
 ### 1.1 프로젝트명
-**MANAGESTOCK** — 주식 계좌 관리 · 매매일지 · 수익률 경연 대회 플랫폼
+**BULLSLONG** — 주식 계좌 관리 · 매매일지 · 수익률 경연 대회 플랫폼
 
 ### 1.2 기술 스택 (실제 버전)
 
@@ -228,7 +228,7 @@ baseURL: `${VITE_API_URL}/api`   // VITE_API_URL이 비어있으면 상대경로
 | 변수 | 프로덕션 값 | 설명 |
 |------|------------|------|
 | `VITE_API_URL` | `""` (빈 값 → 동일 도메인) | 백엔드 URL |
-| `VITE_APP_NAME` | `MANAGESTOCK` | 앱 이름 |
+| `VITE_APP_NAME` | `BULLSLONG` | 앱 이름 |
 | `VITE_USE_MOCK` | `false` | Mock 모드 (개발용) |
 
 ---

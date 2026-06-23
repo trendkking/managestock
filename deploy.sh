@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# MANAGESTOCK 프로덕션 배포 — /var/www/bullslong 에서 실행
+# BULLSLONG 프로덕션 배포 — /var/www/bullslong 에서 실행
 set -euo pipefail
 
 APP_DIR="/var/www/bullslong"

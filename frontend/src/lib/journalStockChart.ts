@@ -173,7 +173,7 @@ export type SrLine = {
   label?: string
 }
 
-const SR_STORAGE_PREFIX = 'managestock-journal-sr-'
+const SR_STORAGE_PREFIX = 'bullslong-journal-sr-'
 
 function srStorageKey(stockCode: string): string {
   return `${SR_STORAGE_PREFIX}${stockCode}`

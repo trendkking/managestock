@@ -1,5 +1,5 @@
-ADMIN_EMAIL = "admin@managestock.local"
-ADMIN_LOGIN_ALIASES = {"admin", "admin@managestock.local"}
+ADMIN_EMAIL = "admin@bullslong.local"
+ADMIN_LOGIN_ALIASES = {"admin", "admin@bullslong.local"}
 
 
 def normalize_login_identifier(raw: str) -> str:

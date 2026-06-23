@@ -1,9 +1,9 @@
-# MANAGESTOCK 원클릭 실행 (PowerShell)
+# BULLSLONG 원클릭 실행 (PowerShell)
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
 
 Write-Host ""
-Write-Host " MANAGESTOCK 원클릭 실행" -ForegroundColor Cyan
+Write-Host " BULLSLONG 원클릭 실행" -ForegroundColor Cyan
 Write-Host " ========================" -ForegroundColor Cyan
 Write-Host ""
 

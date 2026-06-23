@@ -1,4 +1,4 @@
-# MANAGESTOCK 프로젝트 가이드 (guide.md)
+# BULLSLONG 프로젝트 가이드 (guide.md)
 
 > **최종 업데이트:** 2026-06-20  
 > **프로덕션:** https://bullslong.com  
@@ -19,7 +19,7 @@
 
 ## 2. 프로젝트 개요
 
-**MANAGESTOCK** — 개인 투자자를 위한 주식 계좌 관리 · 매매일지 · 수익률 경연 대회 플랫폼
+**BULLSLONG** — 개인 투자자를 위한 주식 계좌 관리 · 매매일지 · 수익률 경연 대회 플랫폼
 
 | 기능 | 설명 |
 |------|------|
@@ -69,7 +69,7 @@
 │   ├── app/                 # FastAPI 앱
 │   ├── alembic/             # DB 마이그레이션
 │   ├── data/
-│   │   └── managestock.db   # 프로덕션 SQLite DB
+│   │   └── bullslong.db   # 프로덕션 SQLite DB
 │   ├── venv/                # Python 가상환경
 │   ├── requirements.txt
 │   └── .env                 # 프로덕션 환경 변수
@@ -128,15 +128,15 @@ server {
 
 ```bash
 # 상태 확인
-sudo systemctl status managestock-backend
+sudo systemctl status bullslong-backend
 sudo systemctl status nginx
 
 # 재시작
-sudo systemctl restart managestock-backend
+sudo systemctl restart bullslong-backend
 sudo systemctl reload nginx
 
 # 로그 확인
-sudo journalctl -u managestock-backend -f
+sudo journalctl -u bullslong-backend -f
 sudo tail -f /var/log/nginx/error.log
 ```
 
@@ -204,7 +204,7 @@ npm run dev
 **backend/.env (로컬)**
 ```env
 APP_ENV=development
-DATABASE_URL=sqlite:///./managestock.db
+DATABASE_URL=sqlite:///./bullslong.db
 SECRET_KEY=dev-secret-key-change-in-production
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
@@ -217,7 +217,7 @@ KIS_USE_VIRTUAL=false
 **frontend/.env (로컬)**
 ```env
 VITE_API_URL=http://localhost:8000
-VITE_APP_NAME=MANAGESTOCK
+VITE_APP_NAME=BULLSLONG
 VITE_USE_MOCK=false
 ```
 
@@ -259,7 +259,7 @@ venv/bin/pip install -r requirements.txt
 venv/bin/alembic upgrade head
 
 # 6. 백엔드 재시작 (코드 변경 시)
-sudo systemctl restart managestock-backend
+sudo systemctl restart bullslong-backend
 ```
 
 ---
@@ -348,7 +348,7 @@ npm run build    # tsc -b 포함
 
 | 증상 | 원인 | 해결 |
 |------|------|------|
-| 502 Bad Gateway | 백엔드 다운 | `sudo systemctl restart managestock-backend` |
+| 502 Bad Gateway | 백엔드 다운 | `sudo systemctl restart bullslong-backend` |
 | CORS 오류 | Origin 미등록 | `backend/.env` CORS_ORIGINS에 도메인 추가 |
 | 401 Unauthorized | 토큰 만료 | 재로그인 (24h 만료) |
 | SQLite locked | 동시 쓰기 | WAL 모드 확인 (`SQLITE_WAL=true`) |

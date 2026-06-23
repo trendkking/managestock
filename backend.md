@@ -91,7 +91,7 @@ backend/
 │   └── versions/            # 001 ~ 010 마이그레이션
 ├── tests/                   # pytest 테스트
 ├── data/
-│   └── managestock.db       # 프로덕션 SQLite DB (WAL)
+│   └── bullslong.db       # 프로덕션 SQLite DB (WAL)
 ├── uploads/                 # 업로드 파일 디렉터리
 ├── venv/                    # Python 3.11 가상환경
 ├── requirements.txt
@@ -105,11 +105,11 @@ backend/
 
 ### 2.1 systemd 서비스
 
-파일: `/etc/systemd/system/managestock-backend.service`
+파일: `/etc/systemd/system/bullslong-backend.service`
 
 ```ini
 [Unit]
-Description=MANAGESTOCK FastAPI Backend
+Description=BULLSLONG FastAPI Backend
 After=network.target
 
 [Service]
@@ -146,7 +146,7 @@ location /api/ {
 | 변수 | 프로덕션 값 | 설명 |
 |------|------------|------|
 | `APP_ENV` | `production` | 환경 구분 |
-| `DATABASE_URL` | `sqlite:////var/www/bullslong/backend/data/managestock.db` | DB 경로 |
+| `DATABASE_URL` | `sqlite:////var/www/bullslong/backend/data/bullslong.db` | DB 경로 |
 | `SECRET_KEY` | (랜덤 64자) | JWT 서명 키 |
 | `ALGORITHM` | `HS256` | JWT 알고리즘 |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `1440` | 토큰 만료 (24h) |

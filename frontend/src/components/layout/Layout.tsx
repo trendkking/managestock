@@ -30,7 +30,7 @@ export function Sidebar({ mobile = false, onClose }: { mobile?: boolean; onClose
     >
       <div className="flex h-16 items-center gap-2 border-b border-slate-200 px-6">
         <BarChart3 className="h-7 w-7 text-blue-600" />
-        <span className="text-lg font-bold text-slate-900">MANAGESTOCK</span>
+        <span className="text-lg font-bold text-slate-900">BULLSLONG</span>
         {mobile && (
           <button type="button" onClick={onClose} className="ml-auto rounded-lg p-1 hover:bg-slate-100">
             <X className="h-5 w-5" />
@@ -73,7 +73,7 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         </button>
         <NavLink to="/accounts" className="flex items-center gap-2 md:hidden">
           <BarChart3 className="h-6 w-6 text-blue-600" />
-          <span className="font-bold">MANAGESTOCK</span>
+          <span className="font-bold">BULLSLONG</span>
         </NavLink>
       </div>
 

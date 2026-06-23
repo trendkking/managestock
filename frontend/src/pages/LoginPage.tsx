@@ -68,7 +68,7 @@ export default function LoginPage() {
 
             <h1 className="mt-3 text-2xl font-bold">로그인</h1>
 
-            <p className="mt-1 text-sm text-slate-500">MANAGESTOCK에 오신 것을 환영합니다</p>
+            <p className="mt-1 text-sm text-slate-500">BULLSLONG에 오신 것을 환영합니다</p>
 
           </div>
 

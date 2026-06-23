@@ -1,5 +1,5 @@
 [Unit]
-Description=MANAGESTOCK FastAPI backend
+Description=BULLSLONG FastAPI backend
 After=network.target
 
 [Service]

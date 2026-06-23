@@ -2,7 +2,7 @@
 import sqlite3
 from pathlib import Path
 
-DB = Path(__file__).resolve().parent.parent / "managestock.db"
+DB = Path(__file__).resolve().parent.parent / "bullslong.db"
 
 EXPECTED_TABLES = {
     "users",

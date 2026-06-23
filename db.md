@@ -10,7 +10,7 @@
 | 항목 | 값 |
 |------|-----|
 | DBMS | SQLite 3 (WAL 모드) |
-| 위치 | `/var/www/bullslong/backend/data/managestock.db` |
+| 위치 | `/var/www/bullslong/backend/data/bullslong.db` |
 | 현재 마이그레이션 | `010_competition_multi_account` (head) |
 | 테이블 수 | **14개** |
 | ORM | SQLAlchemy 2.0 (Mapped / mapped_column) |
@@ -409,7 +409,7 @@ venv/bin/alembic history --verbose
 venv/bin/alembic upgrade head
 
 # DB 백업
-cp data/managestock.db data/managestock_$(date +%Y%m%d).db
+cp data/bullslong.db data/bullslong_$(date +%Y%m%d).db
 ```
 
 WAL 모드: `SQLITE_WAL=true` 환경 변수로 자동 설정됨

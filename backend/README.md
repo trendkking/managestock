@@ -1,4 +1,4 @@
-# MANAGESTOCK Backend
+# BULLSLONG Backend
 
 FastAPI + SQLAlchemy + SQLite — **23개 REST API** (`backend.md` 명세)
 

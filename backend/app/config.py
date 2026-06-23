@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     APP_ENV: str = "development"
-    DATABASE_URL: str = "sqlite:///./managestock.db"
+    DATABASE_URL: str = "sqlite:///./bullslong.db"
     SECRET_KEY: str = "dev-secret-key-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440

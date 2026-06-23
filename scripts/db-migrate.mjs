@@ -13,7 +13,7 @@ if (!existsSync(paths.venvPython)) {
 
 console.log('')
 console.log('========================================')
-console.log('  MANAGESTOCK - DB 마이그레이션')
+console.log('  BULLSLONG - DB 마이그레이션')
 console.log('========================================')
 console.log('')
 
@@ -27,5 +27,5 @@ log('DB', '스키마 검증...')
 run(`"${paths.venvPython}" -m scripts.verify_db`, paths.backend)
 
 console.log('')
-console.log('✓ 마이그레이션 완료 (backend/managestock.db)')
+console.log('✓ 마이그레이션 완료 (backend/bullslong.db)')
 console.log('')

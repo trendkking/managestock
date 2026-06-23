@@ -16,7 +16,7 @@ export default function LandingPage() {
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <div className="flex items-center gap-2">
           <BarChart3 className="h-8 w-8 text-blue-600" />
-          <span className="text-xl font-bold">MANAGESTOCK</span>
+          <span className="text-xl font-bold">BULLSLONG</span>
         </div>
         <div className="flex items-center gap-3">
           {isAuth ? (
@@ -50,7 +50,7 @@ export default function LandingPage() {
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600">
           {isAuth
-            ? `${user?.nickname}님, MANAGESTOCK에 로그인되었습니다. 아래 메뉴에서 원하는 기능을 선택하세요.`
+            ? `${user?.nickname}님, BULLSLONG에 로그인되었습니다. 아래 메뉴에서 원하는 기능을 선택하세요.`
             : '투자 기록을 체계적으로 관리하고, 매매일지로 복기하며, 다른 투자자와 수익률을 겨루세요.'}
         </p>
         <div className="mt-10 flex flex-wrap justify-center gap-4">

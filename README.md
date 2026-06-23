@@ -1,4 +1,4 @@
-# MANAGESTOCK
+# BULLSLONG
 
 주식 계좌 관리 · 매매일지 · 수익률 경연 대회 플랫폼
 
@@ -92,7 +92,7 @@ npm run db:migrate
 ## 프로젝트 구조
 
 ```
-MANAGESTOCK/
+BULLSLONG/
 ├── start.bat         ← 더블클릭 원클릭 실행 (Windows)
 ├── start.ps1         ← PowerShell 원클릭 실행
 ├── package.json      ← npm start
@@ -139,7 +139,7 @@ MANAGESTOCK/
 > | 매매일지 | `/api/journals/*` |
 > | 경연 대회 | `/api/competitions/*` |
 >
-> 로그인 후 `DataBootstrap`이 서버 데이터를 불러옵니다. 이전 mock 데이터가 보이면 브라우저 localStorage에서 `managestock-data` 키를 삭제하세요.
+> 로그인 후 `DataBootstrap`이 서버 데이터를 불러옵니다. 이전 mock 데이터가 보이면 브라우저 localStorage에서 `bullslong-data` 키를 삭제하세요.
 
 ## 기술 스택
 

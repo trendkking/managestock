@@ -41,7 +41,7 @@ export default function AdminLoginPage() {
                 <Shield className="h-8 w-8 text-amber-400" />
               </div>
               <h1 className="mt-4 text-2xl font-bold text-white">관리자 로그인</h1>
-              <p className="mt-1 text-sm text-slate-400">MANAGESTOCK 관리 시스템</p>
+              <p className="mt-1 text-sm text-slate-400">BULLSLONG 관리 시스템</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">

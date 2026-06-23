@@ -16,7 +16,7 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(
-    title="MANAGESTOCK API",
+    title="BULLSLONG API",
     description="주식 계좌 관리 · 매매일지 · 수익률 경연 대회 API",
     version="1.0.0",
     lifespan=lifespan,

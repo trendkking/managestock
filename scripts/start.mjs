@@ -37,7 +37,7 @@ if (!existsSync(join(paths.frontend, 'node_modules'))) {
 
 console.log('')
 console.log('========================================')
-console.log('  MANAGESTOCK - 서버 시작')
+console.log('  BULLSLONG - 서버 시작')
 console.log(`  Frontend: ${FRONTEND_URL}`)
 console.log(`  Backend:  ${BACKEND_URL}`)
 console.log('========================================')

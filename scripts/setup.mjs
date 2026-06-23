@@ -12,7 +12,7 @@ import { join } from 'node:path'
 
 console.log('')
 console.log('========================================')
-console.log('  MANAGESTOCK - 환경 설정')
+console.log('  BULLSLONG - 환경 설정')
 console.log('========================================')
 console.log('')
 

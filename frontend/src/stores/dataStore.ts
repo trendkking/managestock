@@ -798,7 +798,7 @@ export const useDataStore = create<DataState>()(
       },
     }),
     {
-      name: 'managestock-data',
+      name: 'bullslong-data',
       skipHydration: !USE_MOCK,
       partialize: (state) =>
         USE_MOCK

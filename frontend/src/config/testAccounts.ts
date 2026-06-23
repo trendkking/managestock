@@ -27,7 +27,7 @@ export const ADMIN_ACCOUNT: TestAccount = {
   user: {
     id: 0,
     nickname: 'admin',
-    email: 'admin@managestock.local',
+    email: 'admin@bullslong.local',
     role: 'admin',
     showNicknamePublic: true,
     createdAt: '2026-01-01T00:00:00Z',
