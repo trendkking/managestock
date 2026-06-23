@@ -1,0 +1,82 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy to EC2 (PM2)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script_stop: true
+          command_timeout: 15m
+          script: |
+            set -euo pipefail
+
+            APP_DIR="/var/www/bullslong"
+            REPO_URL="https://github.com/trendkking/managestock.git"
+
+            echo "==> Prepare app directory"
+            if [ ! -d "${APP_DIR}/.git" ]; then
+              sudo mkdir -p "${APP_DIR}"
+              sudo chown -R "$(whoami):$(whoami)" "${APP_DIR}"
+              git clone "${REPO_URL}" "${APP_DIR}"
+            fi
+
+            cd "${APP_DIR}"
+
+            echo "==> Sync latest code"
+            git fetch origin main
+            git checkout main
+            git pull origin main
+
+            if [ ! -f deploy.sh ]; then
+              echo "==> deploy.sh not found — creating bootstrap script"
+              cat > deploy.sh << 'EOF'
+            #!/usr/bin/env bash
+            set -euo pipefail
+            APP_DIR="/var/www/bullslong"
+            cd "${APP_DIR}"
+            if [ -x backend/venv/bin/pip ]; then
+              PIP="${APP_DIR}/backend/venv/bin/pip"
+              ALEMBIC="${APP_DIR}/backend/venv/bin/alembic"
+            else
+              PIP="pip3"
+              ALEMBIC="alembic"
+            fi
+            echo "==> [1/4] git pull origin main"
+            git pull origin main
+            echo "==> [2/4] alembic upgrade head"
+            (cd backend && "${ALEMBIC}" upgrade head)
+            echo "==> [3/4] pip install -r backend/requirements.txt"
+            "${PIP}" install -r backend/requirements.txt
+            echo "==> [4/4] pm2 restart all"
+            pm2 restart all
+            echo "==> Deploy completed successfully."
+            EOF
+            fi
+
+            chmod +x deploy.sh
+            bash deploy.sh
+
+      - name: Deployment succeeded
+        if: success()
+        run: echo "✅ Deployment to production completed successfully."
+
+      - name: Deployment failed
+        if: failure()
+        run: echo "❌ Deployment failed. Check the SSH step logs above."
