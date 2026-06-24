@@ -1,29 +1,31 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#b91c1c" />
 
-    <title>__APP_NAME__ | 불스롱</title>
-    <meta name="description" content="주식 계좌 관리, 매매일지, 수익률 경연 대회 — BULLSLONG(불스롱)" />
-    <meta name="application-name" content="__APP_NAME__" />
-    <link rel="canonical" href="__SITE_URL__/" />
+    <title>BULLSLONG | 불스롱</title>
+    <meta name="title" content="BULLSLONG | 불스롱" />
+    <meta name="description" content="주식 계좌 관리, 매매일지, 수익률 경연 대회 - BULLSLONG(불스롱)" />
+    <meta name="application-name" content="BULLSLONG" />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="https://bullslong.com/" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
-    <!-- Open Graph (Facebook, Kakao, LinkedIn 등) -->
+    <!-- Open Graph (Facebook, Kakao, LinkedIn, Discord 등) -->
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="__APP_NAME__" />
+    <meta property="og:site_name" content="BULLSLONG" />
     <meta property="og:locale" content="ko_KR" />
-    <meta property="og:url" content="__SITE_URL__/" />
-    <meta property="og:title" content="__APP_NAME__ | 불스롱" />
-    <meta property="og:description" content="주식 계좌 관리, 매매일지, 수익률 경연 대회 — BULLSLONG(불스롱)" />
-    <meta property="og:image" content="__SITE_URL__/og-image.png" />
-    <meta property="og:image:secure_url" content="__SITE_URL__/og-image.png" />
+    <meta property="og:url" content="https://bullslong.com/" />
+    <meta property="og:title" content="BULLSLONG | 불스롱" />
+    <meta property="og:description" content="주식 계좌 관리, 매매일지, 수익률 경연 대회 - BULLSLONG(불스롱)" />
+    <meta property="og:image" content="https://bullslong.com/og-image.png" />
+    <meta property="og:image:secure_url" content="https://bullslong.com/og-image.png" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -31,10 +33,26 @@
 
     <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="__APP_NAME__ | 불스롱" />
-    <meta name="twitter:description" content="주식 계좌 관리, 매매일지, 수익률 경연 대회 — BULLSLONG(불스롱)" />
-    <meta name="twitter:image" content="__SITE_URL__/og-image.png" />
+    <meta name="twitter:domain" content="bullslong.com" />
+    <meta name="twitter:url" content="https://bullslong.com/" />
+    <meta name="twitter:title" content="BULLSLONG | 불스롱" />
+    <meta name="twitter:description" content="주식 계좌 관리, 매매일지, 수익률 경연 대회 - BULLSLONG(불스롱)" />
+    <meta name="twitter:image" content="https://bullslong.com/og-image.png" />
     <meta name="twitter:image:alt" content="BULLSLONG 월가 스타일 황소 로고" />
+
+    <!-- JSON-LD (검색·링크 미리보기 보조) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "BULLSLONG",
+        "alternateName": "불스롱",
+        "url": "https://bullslong.com/",
+        "description": "주식 계좌 관리, 매매일지, 수익률 경연 대회",
+        "image": "https://bullslong.com/og-image.png",
+        "inLanguage": "ko-KR"
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

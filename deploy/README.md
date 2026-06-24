@@ -72,3 +72,25 @@ bash deploy.sh
 ## Actions 확인
 
 GitHub → **Actions** → **Deploy** 워크플로에서 성공/실패 로그를 확인합니다.
+
+## Open Graph (링크 미리보기)
+
+배포 후 아래 URL이 **200 OK** 여야 합니다.
+
+| 항목 | URL |
+|------|-----|
+| OG 이미지 | `https://bullslong.com/og-image.png` (1200×630) |
+| 메타 태그 | `https://bullslong.com/` 페이지 소스의 `og:image` |
+
+카카오·페이스북 캐시 초기화:
+
+- 카카오: https://developers.kakao.com/tool/debugger/sharing
+- 페이스북: https://developers.facebook.com/tools/debug/
+
+서버 Nginx에 `deploy/nginx/og-static.conf` 내용을 `server` 블록에 include 한 뒤 `sudo nginx -t && sudo systemctl reload nginx` 하세요.
+
+OG 이미지 재생성 (로고 변경 시):
+
+```bash
+cd frontend && npm run generate:og && npm run build
+```

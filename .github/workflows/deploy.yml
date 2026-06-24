@@ -82,6 +82,10 @@ jobs:
           npm ci
           npm run build
           test -f dist/index.html
+          test -f dist/og-image.png
+          grep -q 'property="og:image"' dist/index.html
+          grep -q 'https://bullslong.com/og-image.png' dist/index.html
+          echo "✅ Open Graph meta + og-image.png verified"
           echo "✅ frontend dist ready ($(du -sh dist | cut -f1))"
 
       - name: Test SSH connection
