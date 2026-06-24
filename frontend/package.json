@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "generate:og": "python ../scripts/generate-og-assets.py",
     "lint": "eslint .",
     "preview": "vite preview"
   },
