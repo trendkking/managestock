@@ -36,7 +36,7 @@ const PRESETS: { id: TradePeriodPreset; label: string }[] = [
 ]
 
 /** 막대(매매손익) / 선(누적운용손익) — 대비가 큰 조합 */
-const COLOR_TRADE_PNL = '#2563eb'
+const COLOR_TRADE_PNL = '#dc2626'
 const COLOR_CUMULATIVE = '#10b981'
 
 const CHART_HEIGHT = 400
@@ -205,7 +205,7 @@ export function TradePnlChartPanel({
   return (
     <div>
       <p className="mb-4 text-sm text-slate-600">
-        매도한 종목마다 <span className="font-semibold text-blue-600">매매손익</span>(막대)과{' '}
+        매도한 종목마다 <span className="font-semibold text-primary">매매손익</span>(막대)과{' '}
         <span className="font-semibold text-emerald-600">누적운용손익</span>(선)을 함께 보여 줍니다. 종목이 많아도 차트
         너비는 고정되고 막대 간격만 좁아집니다.
       </p>
@@ -283,7 +283,7 @@ export function TradePnlChartPanel({
             />
           </div>
           <p className="flex items-center gap-2 pb-2 text-sm text-slate-600">
-            {loading && <Loader2 className="h-4 w-4 animate-spin text-blue-600" />}
+            {loading && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
             <span>
               <span className="font-medium text-slate-800">{formatRangeLabel(displayRange)}</span>
               {' · '}

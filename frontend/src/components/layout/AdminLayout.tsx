@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BarChart3, BookOpen, LayoutDashboard, LogOut, Shield, Trophy, Users } from 'lucide-react'
+import { BookOpen, LayoutDashboard, LogOut, Trophy, Users } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useAuthStore, useCurrentUser } from '@/stores/authStore'
 import { cn } from '@/utils'
@@ -18,11 +18,11 @@ export function AdminLayout() {
 
   return (
     <div className="flex min-h-screen bg-slate-100">
-      <aside className="flex w-64 flex-col border-r border-slate-800 bg-slate-900 text-slate-100">
-        <div className="flex h-16 items-center gap-2 border-b border-slate-800 px-5">
-          <Shield className="h-6 w-6 text-amber-400" />
+      <aside className="flex w-64 flex-col border-r border-red-950 bg-gradient-to-b from-slate-900 to-primary-darker text-slate-100">
+        <div className="flex h-16 items-center gap-2 border-b border-red-950/50 px-5">
+          <img src="/logo.svg" alt="" className="h-8 w-8" aria-hidden />
           <div>
-            <p className="text-sm font-bold">BULLSLONG</p>
+            <p className="text-sm font-bold">BULLS<span className="text-red-400">LONG</span></p>
             <p className="text-xs text-slate-400">관리자</p>
           </div>
         </div>
@@ -34,7 +34,9 @@ export function AdminLayout() {
               className={({ isActive }) =>
                 cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                  isActive ? 'bg-amber-500/20 text-amber-300' : 'text-slate-300 hover:bg-slate-800 hover:text-white',
+                  isActive
+                    ? 'bg-red-500/20 text-red-300'
+                    : 'text-slate-300 hover:bg-red-950/40 hover:text-white',
                 )
               }
             >
@@ -43,15 +45,15 @@ export function AdminLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className="border-t border-slate-800 p-4 space-y-2">
+        <div className="space-y-2 border-t border-red-950/50 p-4">
           <p className="truncate text-xs text-slate-400">{user?.nickname} ({user?.email})</p>
           <Button
             variant="outline"
             size="sm"
-            className="w-full border-slate-600 bg-transparent text-slate-200 hover:bg-slate-800"
-            onClick={() => navigate('/dashboard')}
+            className="w-full border-slate-600 bg-transparent text-slate-200 hover:bg-red-950/40"
+            onClick={() => navigate('/accounts')}
           >
-            <BarChart3 className="h-4 w-4" /> 사용자 화면
+            사용자 화면
           </Button>
           <Button
             variant="ghost"

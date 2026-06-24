@@ -46,13 +46,13 @@ export default function AccountsPage() {
               <CardContent className="pt-6">
                 <div className="flex items-start justify-between">
                   <div>
-                    <Link to={`/accounts/${account.id}`} className="hover:text-blue-600">
+                    <Link to={`/accounts/${account.id}`} className="hover:text-primary">
                       <AccountTitleWithFlags
                         name={account.name}
                         syncDomestic={account.syncDomestic}
                         syncUsMarkets={account.syncUsMarkets}
                         size="sm"
-                        titleClassName="text-lg hover:text-blue-600"
+                        titleClassName="text-lg hover:text-primary"
                       />
                     </Link>
                     <p className="text-sm text-slate-500">

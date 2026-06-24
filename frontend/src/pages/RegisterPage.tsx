@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { BarChart3 } from 'lucide-react'
+import { Logo } from '@/components/brand/Logo'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input, Label } from '@/components/ui/Input'
@@ -33,11 +33,12 @@ export default function RegisterPage() {
 
   return (
     <AuthLayout>
-      <Card>
+      <Card className="border-red-100 shadow-lg shadow-red-100/30">
         <CardContent className="pt-6">
           <div className="mb-6 flex flex-col items-center">
-            <BarChart3 className="h-10 w-10 text-blue-600" />
+            <Logo size="lg" showText={false} />
             <h1 className="mt-3 text-2xl font-bold">회원가입</h1>
+            <p className="mt-1 text-sm text-slate-500">BULLSLONG과 함께 투자를 기록하세요</p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -60,7 +61,7 @@ export default function RegisterPage() {
             <Button type="submit" className="w-full">가입하기</Button>
           </form>
           <p className="mt-4 text-center text-sm text-slate-500">
-            이미 계정이 있으신가요? <Link to="/login" className="text-blue-600 hover:underline">로그인</Link>
+            이미 계정이 있으신가요? <Link to="/login" className="font-medium text-primary hover:underline">로그인</Link>
           </p>
         </CardContent>
       </Card>

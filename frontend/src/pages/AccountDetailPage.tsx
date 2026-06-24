@@ -81,18 +81,18 @@ export default function AccountDetailPage() {
       />
 
       {isApiAccount && (
-        <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+        <div className="mb-4 rounded-lg border border-red-100 bg-primary-subtle px-4 py-3 text-sm text-primary-darker">
           한국투자증권 API 연동 계좌입니다. 잔고·보유종목은 「API 동기화」로, 매매내역은 탭에서 기간 선택 시 체결 내역을 불러옵니다.
-          <span className="mt-1 block text-blue-800">
+          <span className="mt-1 block text-primary-darker">
             동기화 범위: {formatSyncScope(account.syncDomestic, account.syncUsMarkets)}
           </span>
           {account.lastSyncedAt && (
-            <span className="ml-2 text-blue-700">
+            <span className="ml-2 text-primary-dark">
               마지막 동기화: {account.lastSyncedAt.slice(0, 16).replace('T', ' ')}
             </span>
           )}
           {account.syncUsMarkets && account.syncUsMarkets.length > 0 && (
-            <span className="mt-1 block text-blue-800">
+            <span className="mt-1 block text-primary-darker">
               미국 보유종목 표는 달러(USD), 상단 요약은 원화입니다. 손익은 표의 평가손익 합(미국은 ×환율)과 같습니다.
               {account.usdKrwRate
                 ? ` (동기화 환율: ${account.usdKrwRate.toLocaleString('ko-KR', { maximumFractionDigits: 2 })}원/USD)`

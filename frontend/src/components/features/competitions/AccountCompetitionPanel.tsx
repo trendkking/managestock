@@ -100,7 +100,7 @@ export function AccountCompetitionPanel({ accounts }: { accounts: AccountWithSta
 
         {accounts.length === 0 && joinableCompetitions.length > 0 && (
           <p className="mb-4 text-sm text-slate-600">
-            <Link to="/accounts" className="font-medium text-blue-600 hover:underline">
+            <Link to="/accounts" className="font-medium text-primary hover:underline">
               계좌를 등록
             </Link>
             한 뒤 대회에 참가할 수 있습니다.
@@ -123,7 +123,7 @@ export function AccountCompetitionPanel({ accounts }: { accounts: AccountWithSta
               <div key={comp.id} className="rounded-lg border border-amber-100 bg-white p-4">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <Link to={`/competitions/${comp.id}`} className="font-medium text-slate-900 hover:text-blue-600">
+                    <Link to={`/competitions/${comp.id}`} className="font-medium text-slate-900 hover:text-primary">
                       {comp.name}
                     </Link>
                     <p className="text-xs text-slate-500">

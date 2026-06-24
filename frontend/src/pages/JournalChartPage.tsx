@@ -132,7 +132,7 @@ export default function JournalChartPage() {
                     </Badge>
                   </div>
                   <p className="text-sm text-slate-600">{selectedEntry.stockName}</p>
-                  <div className="rounded-lg border border-blue-100 bg-blue-50/60 p-4 text-sm leading-relaxed text-slate-800">
+                  <div className="rounded-lg border border-red-100 bg-primary-subtle/60 p-4 text-sm leading-relaxed text-slate-800">
                     {selectedEntry.reason}
                   </div>
                 </div>
@@ -164,7 +164,7 @@ export default function JournalChartPage() {
               {entries.map((entry) => (
                 <tr
                   key={entry.id}
-                  className={`cursor-pointer ${entry.id === selectedId ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
+                  className={`cursor-pointer ${entry.id === selectedId ? 'bg-primary-subtle' : 'hover:bg-slate-50'}`}
                   onClick={() => selectEntry(entry)}
                 >
                   <Td className="whitespace-nowrap tabular-nums">{entry.journalDate}</Td>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bull-body" x1="32" y1="8" x2="32" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EF4444"/>
+      <stop offset="1" stop-color="#B91C1C"/>
+    </linearGradient>
+    <linearGradient id="bull-horn" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FCD34D"/>
+      <stop offset="1" stop-color="#D97706"/>
+    </linearGradient>
+  </defs>
+  <path d="M12 28c-2-8 4-18 12-20 2 6 6 10 8 10s6-4 8-10c8 2 14 12 12 20-1 14-10 24-20 26S13 42 12 28z" fill="url(#bull-body)"/>
+  <path d="M14 24c-6-4-8-12-4-18 4 2 6 8 6 12" stroke="url(#bull-horn)" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M50 24c6-4 8-12 4-18-4 2-6 8-6 12" stroke="url(#bull-horn)" stroke-width="3.5" stroke-linecap="round"/>
+  <ellipse cx="32" cy="40" rx="11" ry="7" fill="#FECACA"/>
+  <circle cx="27" cy="40" r="2" fill="#7F1D1D"/>
+  <circle cx="37" cy="40" r="2" fill="#7F1D1D"/>
+  <circle cx="24" cy="30" r="3.5" fill="#1F2937"/>
+  <circle cx="40" cy="30" r="3.5" fill="#1F2937"/>
+  <circle cx="25" cy="29" r="1" fill="#F9FAFB"/>
+  <circle cx="41" cy="29" r="1" fill="#F9FAFB"/>
+  <path d="M22 48c4 3 16 3 20 0" stroke="#991B1B" stroke-width="2" stroke-linecap="round"/>
+</svg>

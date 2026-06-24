@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, BarChart3, BookOpen, LogOut, Trophy, Wallet } from 'lucide-react'
+import { ArrowRight, BookOpen, LogOut, Trophy, Wallet } from 'lucide-react'
+import { Logo } from '@/components/brand/Logo'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
 import { useAuthStore, useCurrentUser, useIsAuthenticated } from '@/stores/authStore'
@@ -12,41 +13,49 @@ export default function LandingPage() {
   const logout = useAuthStore((s) => s.logout)
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <div className="flex items-center gap-2">
-          <BarChart3 className="h-8 w-8 text-blue-600" />
-          <span className="text-xl font-bold">BULLSLONG</span>
-        </div>
-        <div className="flex items-center gap-3">
-          {isAuth ? (
-            <>
-              <span className="hidden text-sm text-slate-600 sm:inline">
-                {user?.nickname}님, 환영합니다
-              </span>
-              <Link to="/accounts"><Button>계좌 관리</Button></Link>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="로그아웃"
-                onClick={() => { logout(); navigate('/') }}
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </>
-          ) : (
-            <>
-              <Link to="/login"><Button variant="ghost">로그인</Button></Link>
-              <Link to="/register"><Button>회원가입</Button></Link>
-            </>
-          )}
+    <div className="min-h-screen bg-gradient-to-b from-red-50 via-primary-subtle/30 to-white">
+      <header className="border-b border-red-100/80 bg-white/80 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <Logo size="md" />
+          <div className="flex items-center gap-3">
+            {isAuth ? (
+              <>
+                <span className="hidden text-sm text-slate-600 sm:inline">
+                  {user?.nickname}님, 환영합니다
+                </span>
+                <Link to="/accounts"><Button>계좌 관리</Button></Link>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="로그아웃"
+                  onClick={() => { logout(); navigate('/') }}
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/login"><Button variant="ghost">로그인</Button></Link>
+                <Link to="/register"><Button>회원가입</Button></Link>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
-      <section className="mx-auto max-w-6xl px-6 py-16 text-center">
+      <section className="relative mx-auto max-w-6xl px-6 py-16 text-center md:py-24">
+        <div className="mx-auto mb-8 flex justify-center">
+          <div className="rounded-3xl bg-gradient-to-br from-primary to-primary-dark p-1 shadow-lg shadow-red-300/40">
+            <div className="rounded-[22px] bg-white p-4">
+              <img src="/logo.svg" alt="BULLSLONG 황소" className="h-20 w-20 md:h-24 md:w-24" />
+            </div>
+          </div>
+        </div>
         <h1 className="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl">
           주식 계좌 관리 · 매매일지 ·<br />
-          <span className="text-blue-600">수익률 경연 대회</span>
+          <span className="bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
+            수익률 경연 대회
+          </span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600">
           {isAuth
@@ -82,10 +91,10 @@ export default function LandingPage() {
           { icon: Trophy, title: '경연 대회', desc: '평가금액(보유손익+매매손익)으로 순위를 겨룹니다.', to: '/competitions' },
         ].map(({ icon: Icon, title, desc, to }) => (
           <Link key={title} to={isAuth ? to : '/login'}>
-            <Card className="h-full transition-shadow hover:shadow-md">
+            <Card className="h-full border-red-100 transition-all hover:border-red-200 hover:shadow-md hover:shadow-red-100/50">
               <CardContent className="pt-6">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
-                  <Icon className="h-6 w-6 text-blue-600" />
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary-muted">
+                  <Icon className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="text-lg font-semibold">{title}</h3>
                 <p className="mt-2 text-sm text-slate-500">{desc}</p>
@@ -94,6 +103,10 @@ export default function LandingPage() {
           </Link>
         ))}
       </section>
+
+      <footer className="border-t border-red-100 bg-primary-darker py-6 text-center text-sm text-red-100">
+        © {new Date().getFullYear()} BULLSLONG · bullslong.com
+      </footer>
     </div>
   )
 }

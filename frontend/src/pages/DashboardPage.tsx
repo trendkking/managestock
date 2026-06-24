@@ -36,7 +36,7 @@ export default function DashboardPage() {
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                 <YAxis tickFormatter={(v) => `${v}%`} />
                 <Tooltip formatter={(v) => [`${Number(v).toFixed(2)}%`, '수익률']} />
-                <Bar dataKey="returnRate" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="returnRate" fill="#dc2626" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -83,14 +83,14 @@ export default function DashboardPage() {
         <div>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-semibold">최근 매매일지</h2>
-            <Link to="/journal" className="text-sm text-blue-600 hover:underline">전체 보기</Link>
+            <Link to="/journal" className="text-sm text-primary hover:underline">전체 보기</Link>
           </div>
           <div className="space-y-3">
             {journalEntries.slice(0, 3).map((e) => (
               <Link
                 key={e.id}
                 to={`/journal/chart/${encodeURIComponent(e.stockCode)}?entry=${e.id}`}
-                className="block rounded-xl border border-slate-200 bg-white p-4 hover:border-blue-200"
+                className="block rounded-xl border border-slate-200 bg-white p-4 hover:border-red-200"
               >
                 <p className="font-medium">
                   {e.stockName} <span className="text-sm font-normal text-slate-500">{e.journalDate}</span>

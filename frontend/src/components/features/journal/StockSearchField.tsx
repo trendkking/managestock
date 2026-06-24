@@ -116,8 +116,8 @@ export function StockSearchField({ stockCode, stockName, onSelect, disabled }: S
                 type="button"
                 role="option"
                 className={cn(
-                  'flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-blue-50',
-                  stockCode === item.code && 'bg-blue-50',
+                  'flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-primary-subtle',
+                  stockCode === item.code && 'bg-primary-subtle',
                 )}
                 onClick={() => pick(item)}
               >

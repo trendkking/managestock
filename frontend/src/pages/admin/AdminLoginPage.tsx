@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Shield } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input, Label } from '@/components/ui/Input'
@@ -32,13 +31,13 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-900 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-primary-darker to-slate-900 p-4">
       <div className="w-full max-w-md">
-        <Card className="border-slate-700 bg-slate-800 text-slate-100 shadow-xl">
+        <Card className="border-red-900/50 bg-slate-800 text-slate-100 shadow-xl shadow-red-950/50">
           <CardContent className="pt-8">
             <div className="mb-6 flex flex-col items-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/20">
-                <Shield className="h-8 w-8 text-amber-400" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/20 ring-2 ring-red-500/30">
+                <img src="/logo.svg" alt="" className="h-11 w-11" aria-hidden />
               </div>
               <h1 className="mt-4 text-2xl font-bold text-white">관리자 로그인</h1>
               <p className="mt-1 text-sm text-slate-400">BULLSLONG 관리 시스템</p>
@@ -69,7 +68,7 @@ export default function AdminLoginPage() {
                 />
               </div>
               {error && <p className="text-sm text-red-400">{error}</p>}
-              <Button type="submit" className="w-full bg-amber-600 hover:bg-amber-700">
+              <Button type="submit" className="w-full">
                 관리자 로그인
               </Button>
             </form>
@@ -79,7 +78,7 @@ export default function AdminLoginPage() {
             </p>
 
             <p className="mt-6 text-center text-sm text-slate-400">
-              <Link to="/" className="text-amber-400 hover:underline">
+              <Link to="/" className="text-red-400 hover:underline">
                 ← 서비스 홈으로
               </Link>
               <span className="mx-2">·</span>

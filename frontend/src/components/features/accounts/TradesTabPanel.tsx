@@ -228,7 +228,7 @@ export function TradesTabPanel({
             />
           </div>
           <p className="flex items-center gap-2 pb-2 text-sm text-slate-600">
-            {loading && <Loader2 className="h-4 w-4 animate-spin text-blue-600" />}
+            {loading && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
             <span>
               <span className="font-medium text-slate-800">{formatRangeLabel(displayRange)}</span>
               {' · '}

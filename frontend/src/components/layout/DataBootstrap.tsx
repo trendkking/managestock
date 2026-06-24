@@ -68,7 +68,7 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
 
       } catch {
 
-        if (!cancelled) setError('데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.')
+        if (!cancelled) setError('??????? ?????? ??????? ??? ????? ?????????.')
 
       }
 
@@ -94,7 +94,7 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
 
       <div className="flex min-h-[40vh] items-center justify-center text-slate-500">
 
-        데이터 불러오는 중...
+        ?????????? ??..
 
       </div>
 
@@ -116,7 +116,7 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
 
           type="button"
 
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+          className="rounded-lg bg-primary px-4 py-2 text-sm text-white hover:bg-primary-dark"
 
           onClick={() => {
 
@@ -124,13 +124,13 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
 
             setReady(false)
 
-            void hydrateFromApi().then(() => setReady(true)).catch(() => setError('데이터를 불러오지 못했습니다.'))
+            void hydrateFromApi().then(() => setReady(true)).catch(() => setError('??????? ?????? ???????'))
 
           }}
 
         >
 
-          다시 시도
+          ??? ???
 
         </button>
 

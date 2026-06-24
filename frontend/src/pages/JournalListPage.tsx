@@ -140,7 +140,7 @@ export default function JournalListPage() {
               {filtered.map((entry) => (
                 <tr
                   key={entry.id}
-                  className="cursor-pointer hover:bg-blue-50/50"
+                  className="cursor-pointer hover:bg-primary-subtle/50"
                   onClick={() => openChart(entry.stockCode, entry.id)}
                 >
                   <Td className="whitespace-nowrap tabular-nums">{entry.journalDate}</Td>
@@ -233,8 +233,8 @@ export default function JournalListPage() {
                       onClick={() => setSide('sell')}
                       className={`rounded-md px-4 py-2 text-sm font-medium ${
                         side === 'sell'
-                          ? 'bg-blue-600 text-white'
-                          : 'border border-blue-200 bg-blue-50 text-blue-800'
+                          ? 'bg-primary text-white'
+                          : 'border border-red-200 bg-primary-subtle text-primary-darker'
                       }`}
                     >
                       매도

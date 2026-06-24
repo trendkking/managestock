@@ -48,7 +48,7 @@ export function percentColor(value: number): string {
 /** 국내 증권 HTS 관례: 이익=빨강, 손실=파랑 */
 export function stockPnlColor(value: number): string {
   if (value > 0) return 'text-red-600'
-  if (value < 0) return 'text-blue-600'
+  if (value < 0) return 'text-loss'
   return 'text-slate-500'
 }
 

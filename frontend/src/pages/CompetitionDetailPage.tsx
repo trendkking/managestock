@@ -25,7 +25,7 @@ function RankingRow({ entry, highlight }: { entry: LeaderboardEntry; highlight?:
     <div
       className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 ${
         TOP_RANK_STYLES[entry.rank] ?? 'border-slate-200 bg-white'
-      } ${highlight ? 'ring-2 ring-blue-300' : ''}`}
+      } ${highlight ? 'ring-2 ring-red-300' : ''}`}
     >
       <div className="flex min-w-0 items-center gap-3">
         <Badge variant={entry.rank <= 3 ? 'default' : 'secondary'} className="shrink-0">
@@ -170,7 +170,7 @@ export default function CompetitionDetailPage() {
               </div>
 
               {competition.isJoined && myRank != null ? (
-                <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4 lg:self-start">
+                <div className="rounded-xl border border-red-200 bg-primary-subtle/50 p-4 lg:self-start">
                   <p className="text-sm text-slate-600">내 순위</p>
                   <p className="mt-1 text-3xl font-bold tabular-nums text-slate-900">
                     {myRank}
@@ -183,7 +183,7 @@ export default function CompetitionDetailPage() {
                     </span>
                   </p>
                   {showMyRankSeparately && myLeaderboardRow && (
-                    <div className="mt-3 border-t border-blue-100 pt-3">
+                    <div className="mt-3 border-t border-red-100 pt-3">
                       <RankingRow entry={myLeaderboardRow} highlight />
                     </div>
                   )}
@@ -199,7 +199,7 @@ export default function CompetitionDetailPage() {
       </Card>
 
       {competition.isJoined && myScoreDelta != null && (
-        <Card className="mb-6 border-blue-200 bg-blue-50/40">
+        <Card className="mb-6 border-red-200 bg-primary-subtle/40">
           <CardHeader>
             <CardTitle className="text-base">내 대회 성적</CardTitle>
           </CardHeader>
@@ -283,7 +283,7 @@ export default function CompetitionDetailPage() {
             </thead>
             <tbody>
               {leaderboard.map((e) => (
-                <tr key={e.rank} className={e.isMe ? 'bg-blue-50' : ''}>
+                <tr key={e.rank} className={e.isMe ? 'bg-primary-subtle' : ''}>
                   <Td><Badge variant={e.rank <= 3 ? 'default' : 'secondary'}>{e.rank}</Badge></Td>
                   <Td className="font-medium whitespace-nowrap">{e.nickname}{e.isMe && ' (나)'}</Td>
                   <Td className={`tabular-nums whitespace-nowrap ${percentColor(e.unrealizedPnl ?? 0)}`}>

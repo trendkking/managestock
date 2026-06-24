@@ -210,14 +210,14 @@ export function AccountFormDialog({
           <div className="mb-4 flex rounded-lg border border-slate-200 p-1">
             <button
               type="button"
-              className={`flex-1 rounded-md py-2 text-sm font-medium ${tab === 'api' ? 'bg-blue-600 text-white' : 'text-slate-600'}`}
+              className={`flex-1 rounded-md py-2 text-sm font-medium ${tab === 'api' ? 'bg-primary text-white' : 'text-slate-600'}`}
               onClick={() => setTab('api')}
             >
               API 연동
             </button>
             <button
               type="button"
-              className={`flex-1 rounded-md py-2 text-sm font-medium ${tab === 'manual' ? 'bg-blue-600 text-white' : 'text-slate-600'}`}
+              className={`flex-1 rounded-md py-2 text-sm font-medium ${tab === 'manual' ? 'bg-primary text-white' : 'text-slate-600'}`}
               onClick={() => setTab('manual')}
             >
               수동 입력
