@@ -47,11 +47,7 @@ export default function LandingPage() {
 
       <section className="relative mx-auto max-w-6xl px-6 py-16 text-center md:py-24">
         <div className="mx-auto mb-8 flex justify-center">
-          <div className="rounded-3xl bg-gradient-to-br from-primary to-primary-dark p-1 shadow-lg shadow-red-300/40">
-            <div className="rounded-[22px] bg-white p-4">
-              <img src={LOGO_SRC} alt="BULLSLONG 황소" className="h-24 w-auto md:h-32" />
-            </div>
-          </div>
+          <img src={LOGO_SRC} alt="BULLSLONG 황소" className="h-28 w-auto drop-shadow-lg md:h-36" />
         </div>
         <h1 className="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl">
           주식 계좌 관리 · 매매일지 ·<br />
