@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { LOGO_SRC } from '@/components/brand/Logo'
 import { BookOpen, LayoutDashboard, LogOut, Trophy, Users } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useAuthStore, useCurrentUser } from '@/stores/authStore'
@@ -21,7 +22,7 @@ export function AdminLayout() {
       <aside className="flex w-64 flex-col border-r border-red-950 bg-gradient-to-b from-slate-900 to-primary-darker text-slate-100">
         <div className="flex h-16 items-center border-b border-red-950/50 px-5">
           <Link to="/" className="flex items-center gap-2 rounded-lg transition-opacity hover:opacity-85" aria-label="BULLSLONG 홈">
-            <img src="/logo.svg" alt="" className="h-8 w-8" aria-hidden />
+            <img src={LOGO_SRC} alt="" className="h-9 w-auto object-contain" aria-hidden />
             <div>
               <p className="text-sm font-bold">BULLS<span className="text-red-400">LONG</span></p>
               <p className="text-xs text-slate-400">관리자</p>

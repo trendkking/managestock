@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input, Label } from '@/components/ui/Input'
+import { LOGO_SRC } from '@/components/brand/Logo'
 import { ADMIN_ACCOUNT } from '@/config/testAccounts'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -36,8 +37,8 @@ export default function AdminLoginPage() {
         <Card className="border-red-900/50 bg-slate-800 text-slate-100 shadow-xl shadow-red-950/50">
           <CardContent className="pt-8">
             <div className="mb-6 flex flex-col items-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/20 ring-2 ring-red-500/30">
-                <img src="/logo.svg" alt="" className="h-11 w-11" aria-hidden />
+              <div className="flex items-center justify-center rounded-2xl bg-red-500/10 px-4 py-3 ring-2 ring-red-500/30">
+                <img src={LOGO_SRC} alt="" className="h-14 w-auto object-contain" aria-hidden />
               </div>
               <h1 className="mt-4 text-2xl font-bold text-white">관리자 로그인</h1>
               <p className="mt-1 text-sm text-slate-400">BULLSLONG 관리 시스템</p>

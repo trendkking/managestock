@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, BookOpen, LogOut, Trophy, Wallet } from 'lucide-react'
-import { Logo } from '@/components/brand/Logo'
+import { Logo, LOGO_SRC } from '@/components/brand/Logo'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
 import { useAuthStore, useCurrentUser, useIsAuthenticated } from '@/stores/authStore'
@@ -49,7 +49,7 @@ export default function LandingPage() {
         <div className="mx-auto mb-8 flex justify-center">
           <div className="rounded-3xl bg-gradient-to-br from-primary to-primary-dark p-1 shadow-lg shadow-red-300/40">
             <div className="rounded-[22px] bg-white p-4">
-              <img src="/logo.svg" alt="BULLSLONG 황소" className="h-20 w-20 md:h-24 md:w-24" />
+              <img src={LOGO_SRC} alt="BULLSLONG 황소" className="h-24 w-auto md:h-32" />
             </div>
           </div>
         </div>

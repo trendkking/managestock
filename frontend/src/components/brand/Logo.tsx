@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom'
 import { cn } from '@/utils'
 
-const iconSizes = {
-  sm: 'h-6 w-6',
-  md: 'h-8 w-8',
-  lg: 'h-10 w-10',
-  xl: 'h-14 w-14',
+const iconHeights = {
+  sm: 'h-7',
+  md: 'h-9',
+  lg: 'h-11',
+  xl: 'h-16',
 } as const
 
 const textSizes = {
@@ -14,6 +14,8 @@ const textSizes = {
   lg: 'text-xl',
   xl: 'text-2xl',
 } as const
+
+export const LOGO_SRC = '/logo.png'
 
 export function Logo({
   size = 'md',
@@ -24,7 +26,7 @@ export function Logo({
   className,
   textClassName,
 }: {
-  size?: keyof typeof iconSizes
+  size?: keyof typeof iconHeights
   showText?: boolean
   to?: string
   clickable?: boolean
@@ -34,7 +36,12 @@ export function Logo({
 }) {
   const content = (
     <>
-      <img src="/logo.svg" alt="" className={cn(iconSizes[size], 'shrink-0')} aria-hidden />
+      <img
+        src={LOGO_SRC}
+        alt=""
+        className={cn(iconHeights[size], 'w-auto shrink-0 object-contain', !showText && size === 'lg' && 'h-14')}
+        aria-hidden
+      />
       {showText && (
         <span className={cn('font-bold tracking-tight text-slate-900', textSizes[size], textClassName)}>
           BULLS<span className="text-primary">LONG</span>

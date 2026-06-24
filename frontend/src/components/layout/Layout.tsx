@@ -10,7 +10,7 @@ import {
   X,
 } from 'lucide-react'
 import { useState } from 'react'
-import { Logo } from '@/components/brand/Logo'
+import { Logo, LOGO_SRC } from '@/components/brand/Logo'
 import { useAuthStore, useCurrentUser } from '@/stores/authStore'
 import { cn } from '@/utils'
 
@@ -144,13 +144,13 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
         className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 opacity-[0.07]"
         aria-hidden
       >
-        <img src="/logo.svg" alt="" className="h-full w-full" />
+        <img src={LOGO_SRC} alt="" className="h-full w-full object-contain" />
       </div>
       <div
         className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 opacity-[0.05]"
         aria-hidden
       >
-        <img src="/logo.svg" alt="" className="h-full w-full" />
+        <img src={LOGO_SRC} alt="" className="h-full w-full object-contain" />
       </div>
       <div className="relative w-full max-w-md">{children}</div>
     </div>
