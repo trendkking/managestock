@@ -29,7 +29,7 @@ export function Sidebar({ mobile = false, onClose }: { mobile?: boolean; onClose
       )}
     >
       <div className="flex h-16 items-center gap-2 border-b border-red-100 bg-gradient-to-r from-primary-subtle to-white px-6">
-        <Logo size="md" />
+        <Logo size="md" onClick={onClose} />
         {mobile && (
           <button type="button" onClick={onClose} className="ml-auto rounded-lg p-1 hover:bg-primary-muted">
             <X className="h-5 w-5" />
@@ -72,8 +72,8 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         <button type="button" className="rounded-lg p-2 hover:bg-primary-subtle md:hidden" onClick={onMenuClick}>
           <Menu className="h-5 w-5" />
         </button>
-        <NavLink to="/accounts" className="md:hidden">
-          <Logo size="sm" />
+        <NavLink to="/" className="md:hidden" aria-label="BULLSLONG 홈">
+          <Logo size="sm" clickable={false} />
         </NavLink>
       </div>
 

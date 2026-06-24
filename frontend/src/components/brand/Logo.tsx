@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { cn } from '@/utils'
 
 const iconSizes = {
@@ -17,22 +18,43 @@ const textSizes = {
 export function Logo({
   size = 'md',
   showText = true,
+  to = '/',
+  clickable = true,
+  onClick,
   className,
   textClassName,
 }: {
   size?: keyof typeof iconSizes
   showText?: boolean
+  to?: string
+  clickable?: boolean
+  onClick?: () => void
   className?: string
   textClassName?: string
 }) {
-  return (
-    <div className={cn('flex items-center gap-2', className)}>
+  const content = (
+    <>
       <img src="/logo.svg" alt="" className={cn(iconSizes[size], 'shrink-0')} aria-hidden />
       {showText && (
         <span className={cn('font-bold tracking-tight text-slate-900', textSizes[size], textClassName)}>
           BULLS<span className="text-primary">LONG</span>
         </span>
       )}
-    </div>
+    </>
   )
+
+  if (clickable && to) {
+    return (
+      <Link
+        to={to}
+        onClick={onClick}
+        className={cn('flex items-center gap-2 rounded-lg transition-opacity hover:opacity-85', className)}
+        aria-label="BULLSLONG 홈"
+      >
+        {content}
+      </Link>
+    )
+  }
+
+  return <div className={cn('flex items-center gap-2', className)}>{content}</div>
 }

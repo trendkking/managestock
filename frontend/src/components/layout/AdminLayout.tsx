@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { BookOpen, LayoutDashboard, LogOut, Trophy, Users } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useAuthStore, useCurrentUser } from '@/stores/authStore'
@@ -19,12 +19,14 @@ export function AdminLayout() {
   return (
     <div className="flex min-h-screen bg-slate-100">
       <aside className="flex w-64 flex-col border-r border-red-950 bg-gradient-to-b from-slate-900 to-primary-darker text-slate-100">
-        <div className="flex h-16 items-center gap-2 border-b border-red-950/50 px-5">
-          <img src="/logo.svg" alt="" className="h-8 w-8" aria-hidden />
-          <div>
-            <p className="text-sm font-bold">BULLS<span className="text-red-400">LONG</span></p>
-            <p className="text-xs text-slate-400">관리자</p>
-          </div>
+        <div className="flex h-16 items-center border-b border-red-950/50 px-5">
+          <Link to="/" className="flex items-center gap-2 rounded-lg transition-opacity hover:opacity-85" aria-label="BULLSLONG 홈">
+            <img src="/logo.svg" alt="" className="h-8 w-8" aria-hidden />
+            <div>
+              <p className="text-sm font-bold">BULLS<span className="text-red-400">LONG</span></p>
+              <p className="text-xs text-slate-400">관리자</p>
+            </div>
+          </Link>
         </div>
         <nav className="flex-1 space-y-1 p-3">
           {adminNav.map(({ to, label, icon: Icon }) => (

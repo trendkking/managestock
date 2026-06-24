@@ -16,7 +16,9 @@ export default function LandingPage() {
     <div className="min-h-screen bg-gradient-to-b from-red-50 via-primary-subtle/30 to-white">
       <header className="border-b border-red-100/80 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Logo size="md" />
+          <Link to="/" aria-label="BULLSLONG 홈">
+            <Logo size="md" clickable={false} />
+          </Link>
           <div className="flex items-center gap-3">
             {isAuth ? (
               <>
