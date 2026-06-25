@@ -1,12 +1,12 @@
-# BULLSLONG (bullslong.com) — https://bullslong.com/robots.txt
-# 개인정보·로그인 영역 크롤링 차단, 공개 마케팅 페이지만 허용
+# BULLSLONG - https://bullslong.com/robots.txt
+# Public pages only. Block user data and admin areas.
 
 User-agent: *
 Allow: /
 Allow: /login
 Allow: /register
 
-# 사용자 계좌·매매일지·프로필 (개인정보)
+# User accounts, journals, profile (private)
 Disallow: /accounts
 Disallow: /accounts/
 Disallow: /journal
@@ -16,12 +16,11 @@ Disallow: /competitions/
 Disallow: /profile
 Disallow: /dashboard
 
-# 관리자·API
+# Admin and API
 Disallow: /admin
 Disallow: /admin/
 Disallow: /api/
 Disallow: /docs
 Disallow: /health
 
-# 사이트맵
 Sitemap: https://bullslong.com/sitemap.xml
