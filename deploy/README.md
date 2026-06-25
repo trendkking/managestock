@@ -94,3 +94,18 @@ OG 이미지 재생성 (로고 변경 시):
 ```bash
 cd frontend && npm run generate:og && npm run build
 ```
+
+## SEO
+
+| 파일 | URL |
+|------|-----|
+| robots.txt | `https://bullslong.com/robots.txt` |
+| sitemap.xml | `https://bullslong.com/sitemap.xml` |
+
+- **공개 페이지** (sitemap 포함): `/`, `/login`, `/register`
+- **크롤링 차단**: `/accounts`, `/journal`, `/competitions`, `/profile`, `/admin`, `/api`
+
+검색엔진 등록:
+
+- [Google Search Console](https://search.google.com/search-console) → 사이트맵 제출: `https://bullslong.com/sitemap.xml`
+- [Naver Search Advisor](https://searchadvisor.naver.com/) → 사이트맵 제출

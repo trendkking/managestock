@@ -83,9 +83,12 @@ jobs:
           npm run build
           test -f dist/index.html
           test -f dist/og-image.png
+          test -f dist/robots.txt
+          test -f dist/sitemap.xml
           grep -q 'property="og:image"' dist/index.html
           grep -q 'https://bullslong.com/og-image.png' dist/index.html
-          echo "✅ Open Graph meta + og-image.png verified"
+          grep -q 'Sitemap: https://bullslong.com/sitemap.xml' dist/robots.txt
+          echo "✅ SEO assets verified (OG, robots.txt, sitemap.xml)"
           echo "✅ frontend dist ready ($(du -sh dist | cut -f1))"
 
       - name: Test SSH connection
