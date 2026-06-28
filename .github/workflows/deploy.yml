@@ -78,6 +78,7 @@ jobs:
         working-directory: frontend
         run: |
           set -euo pipefail
+          python -m pip install --quiet Pillow
           cp .env.production.example .env
           npm ci
           npm run build
@@ -87,6 +88,7 @@ jobs:
           test -f dist/sitemap.xml
           grep -q 'property="og:image"' dist/index.html
           grep -q 'https://bullslong.com/og-image.png' dist/index.html
+          grep -q 'naver-site-verification' dist/index.html
           grep -q 'Sitemap: https://bullslong.com/sitemap.xml' dist/robots.txt
           test -f dist/manifest.webmanifest
           test -f dist/sw.js
