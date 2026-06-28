@@ -109,3 +109,26 @@ cd frontend && npm run generate:og && npm run build
 
 - [Google Search Console](https://search.google.com/search-console) → 사이트맵 제출: `https://bullslong.com/sitemap.xml`
 - [Naver Search Advisor](https://searchadvisor.naver.com/) → 사이트맵 제출
+
+### Google Search Console — 사이트맵 "가져올 수 없음"
+
+브라우저에서 `https://bullslong.com/sitemap.xml` 이 열리는데도 GSC에 **가져올 수 없음**이면 아래를 순서대로 확인하세요.
+
+1. **속성(URL) 일치**  
+   GSC 속성은 **`https://bullslong.com`** (URL 접두어)로 등록하세요. `www.bullslong.com` 이나 도메인 속성만 쓰면 사이트맵 URL과 불일치할 수 있습니다.
+
+2. **사이트맵 재제출**  
+   예전에 404였다면 GSC → 사이트맵 → 기존 항목 삭제 후 `sitemap.xml` 또는 전체 URL로 다시 제출. 첫 수집까지 **몇 시간~1일** 걸릴 수 있습니다.
+
+3. **Nginx 정적 설정**  
+   서버 `/etc/nginx/nginx.conf` 의 `server` 블록에 `deploy/nginx/og-static.conf` 를 include 한 뒤:
+   ```bash
+   sudo nginx -t && sudo systemctl reload nginx
+   ```
+   `Content-Type: application/xml; charset=utf-8` 로 응답하는지 확인:
+   ```bash
+   curl -sI https://bullslong.com/sitemap.xml | grep -i content-type
+   ```
+
+4. **배포 후 확인**  
+   `deploy.sh` 끝에서 `backend /sitemap.xml` 과 공개 URL을 자동 점검합니다. 백엔드 폴백은 nginx `try_files` 실패 시에도 사이트맵을 제공합니다.

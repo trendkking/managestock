@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import settings
-from app.routers import accounts, admin, auth, brokers, competitions, dashboard, journal_entries, journals, market
+from app.routers import accounts, admin, auth, brokers, competitions, dashboard, journal_entries, journals, market, seo
 from app.schemas.common import HealthResponse
 
 
@@ -45,6 +45,7 @@ app.include_router(market.router, prefix="/api")
 app.include_router(competitions.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
+app.include_router(seo.router)
 
 
 @app.get("/health", response_model=HealthResponse, tags=["health"])

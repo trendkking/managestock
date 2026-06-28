@@ -5,6 +5,8 @@ User-agent: *
 Allow: /
 Allow: /login
 Allow: /register
+Allow: /robots.txt
+Allow: /sitemap.xml
 
 # User accounts, journals, profile (private)
 Disallow: /accounts

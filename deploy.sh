@@ -131,3 +131,17 @@ if [ "${restarted}" -eq 0 ] && command -v pm2 >/dev/null 2>&1; then
 fi
 
 echo "✅ Deploy completed successfully."
+
+if command -v curl >/dev/null 2>&1; then
+  echo "==> verify SEO"
+  if curl -fsS -o /dev/null http://127.0.0.1:8000/sitemap.xml 2>/dev/null; then
+    echo "✅ backend /sitemap.xml"
+  else
+    echo "⚠️  backend /sitemap.xml not reachable (check bullslong-backend)"
+  fi
+  if curl -fsS -o /dev/null https://bullslong.com/sitemap.xml 2>/dev/null; then
+    echo "✅ https://bullslong.com/sitemap.xml"
+  else
+    echo "⚠️  public sitemap.xml check failed"
+  fi
+fi
