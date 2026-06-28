@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { Logo, LOGO_SRC } from '@/components/brand/Logo'
+import { MobileBottomNav } from '@/components/layout/MobileBottomNav'
 import { useAuthStore, useCurrentUser } from '@/stores/authStore'
 import { cn } from '@/utils'
 
@@ -129,10 +130,11 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       )}
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
         <Header onMenuClick={() => setMobileOpen(true)} />
         <main className="flex-1 p-4 md:p-6">{children}</main>
       </div>
+      <MobileBottomNav />
     </div>
   )
 }
