@@ -43,8 +43,9 @@ export function Logo({
         aria-hidden
       />
       {showText && (
-        <span className={cn('font-bold tracking-tight text-slate-900', textSizes[size], textClassName)}>
-          BULLS<span className="text-primary">LONG</span>
+        <span className={cn('font-bold tracking-tight', textSizes[size], textClassName)}>
+          <span className="text-primary">BULLS</span>
+          <span className="text-slate-900">LONG</span>
         </span>
       )}
     </>
