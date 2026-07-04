@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     SQLITE_WAL: bool = True
     CREDENTIALS_ENCRYPTION_KEY: str = ""
     KIS_USE_VIRTUAL: bool = False
+    KIWOOM_USE_VIRTUAL: bool = False
 
     @property
     def cors_origins_list(self) -> list[str]:

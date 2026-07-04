@@ -33,7 +33,7 @@ from app.schemas.account import (
 from app.services.account_sync_service import _parse_iso_date, import_domestic_trades_range
 from app.schemas.broker import AccountConnectRequest
 from app.schemas.base import date_iso, to_float
-from app.services.account_sync_service import connect_kis_account, sync_account_from_broker
+from app.services.account_sync_service import connect_broker_account, sync_account_from_broker
 from app.services.snapshot_service import upsert_account_snapshot
 from app.services.trade_service import execute_trade, upsert_holding
 
@@ -125,8 +125,9 @@ def connect_account(
                 detail="선택한 미국 거래소는 이 증권사에서 지원하지 않습니다.",
             )
     try:
-        account = connect_kis_account(
+        account = connect_broker_account(
             db,
+            broker_code=body.broker_code,
             user_id=user.id,
             name=body.name,
             account_number=body.account_number,

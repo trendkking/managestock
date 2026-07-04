@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from pydantic import Field
 
-from app.brokers.kis import KISBrokerAdapter
+from app.brokers.sync_config import parse_extra, parse_sync_config
 from app.schemas.base import CamelModel, date_iso, dt_iso, to_float
 from app.services.calculations import account_stats
 from app.services.holdings_portfolio import holding_detail_dict, portfolio_summary_dict
@@ -13,7 +13,7 @@ def _fx_for_account(account) -> Decimal | None:
     credential = getattr(account, "credential", None)
     if credential is None or not credential.extra_json:
         return None
-    extra = KISBrokerAdapter.parse_extra(credential.extra_json)
+    extra = parse_extra(credential.extra_json)
     rate = extra.get("usdKrwRate")
     if rate and rate > 0:
         return Decimal(rate)
@@ -190,8 +190,8 @@ class AccountStatsResponse(CamelModel):
         sync_domestic, sync_us = (True, [])
         usd_krw_rate: float | None = None
         if account.credential is not None:
-            sync_domestic, sync_us = KISBrokerAdapter.parse_sync_config(account.credential.extra_json)
-            extra = KISBrokerAdapter.parse_extra(account.credential.extra_json)
+            sync_domestic, sync_us = parse_sync_config(account.credential.extra_json)
+            extra = parse_extra(account.credential.extra_json)
             rate = extra.get("usdKrwRate")
             if rate and rate > 0:
                 usd_krw_rate = to_float(rate)

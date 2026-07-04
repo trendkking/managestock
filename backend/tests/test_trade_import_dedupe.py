@@ -4,7 +4,7 @@ from decimal import Decimal
 from app.brokers.base import BrokerTrade
 from app.brokers.kis import KIS_SYNC_MEMO_PREFIX
 from app.models import Account, Trade, User
-from app.services.account_sync_service import _apply_domestic_trades_import, _dedupe_kis_sync_trades_by_memo
+from app.services.account_sync_service import _apply_domestic_trades_import, _dedupe_sync_trades_by_memo
 
 
 def _broker_trade(external_id: str) -> BrokerTrade:
@@ -81,7 +81,7 @@ def test_dedupe_kis_sync_trades_by_memo(db_session):
         )
     db_session.flush()
 
-    removed = _dedupe_kis_sync_trades_by_memo(db_session, account.id)
+    removed = _dedupe_sync_trades_by_memo(db_session, account)
     trades = db_session.query(Trade).filter_by(account_id=account.id).all()
 
     assert removed == 1

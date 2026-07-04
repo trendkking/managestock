@@ -25,7 +25,7 @@ BROKER_CATALOG: tuple[BrokerCatalogEntry, ...] = (
     BrokerCatalogEntry(
         code="kiwoom",
         name="키움증권",
-        api_connect_available=False,
+        api_connect_available=True,
         supported_markets=SupportedMarkets(domestic=True, us=()),
     ),
     BrokerCatalogEntry(

@@ -8,6 +8,8 @@ import httpx
 
 from app.brokers.base import BrokerBalance, BrokerError, BrokerHolding, BrokerTrade
 from app.config import settings
+from app.models import Account, AccountCredential
+from app.utils.crypto import decrypt_secret
 from app.utils.time import utc_now
 
 US_EXCHANGE_CODES = frozenset({"NASD", "NYSE", "AMEX"})
@@ -274,6 +276,16 @@ class KISCredentials:
 class KISBrokerAdapter:
     broker_code = "kis"
     display_name = "한국투자증권"
+
+    @classmethod
+    def build_credentials(cls, credential: AccountCredential, account: Account) -> KISCredentials:
+        extra = cls.parse_extra(credential.extra_json)
+        return KISCredentials(
+            app_key=decrypt_secret(credential.app_key_encrypted),
+            app_secret=decrypt_secret(credential.app_secret_encrypted),
+            account_number=account.account_number or "",
+            account_product_code=str(extra.get("accountProductCode", "01")),
+        )
 
     def __init__(self, *, use_virtual: bool | None = None):
         self.use_virtual = settings.KIS_USE_VIRTUAL if use_virtual is None else use_virtual

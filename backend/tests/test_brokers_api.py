@@ -8,6 +8,6 @@ def test_list_brokers_includes_market_support(client: TestClient, auth_headers: 
     assert items["kis"]["supportedMarkets"]["domestic"] is True
     assert "NASD" in items["kis"]["supportedMarkets"]["us"]
     assert items["kiwoom"]["supportedMarkets"]["us"] == []
-    assert items["kiwoom"]["apiConnectAvailable"] is False
+    assert items["kiwoom"]["apiConnectAvailable"] is True
     assert items["ls"]["supportedMarkets"]["us"] == []
     assert items["ls"]["apiConnectAvailable"] is False

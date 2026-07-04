@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from app.brokers.kis import KISBrokerAdapter
+from app.brokers.sync_config import parse_extra, parse_sync_config
 from app.models import Account, Holding, Trade
 
 
@@ -9,7 +9,7 @@ def _usd_krw_rate_for_account(account: Account) -> Decimal | None:
     credential = getattr(account, "credential", None)
     if credential is None or not credential.extra_json:
         return None
-    extra = KISBrokerAdapter.parse_extra(credential.extra_json)
+    extra = parse_extra(credential.extra_json)
     rate = extra.get("usdKrwRate")
     if rate and rate > 0:
         return Decimal(rate)

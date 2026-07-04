@@ -24,12 +24,26 @@ _KIS_FIELDS = [
     BrokerFieldSchema(name="appSecret", label="APP SECRET", type="password"),
 ]
 
+_API_CONNECT_FIELDS: dict[str, list[BrokerFieldSchema]] = {
+    "kis": _KIS_FIELDS,
+    "kiwoom": [
+        BrokerFieldSchema(
+            name="accountNumber",
+            label="계좌번호",
+            placeholder="12345678",
+            max_length=10,
+        ),
+        BrokerFieldSchema(name="appKey", label="APP KEY"),
+        BrokerFieldSchema(name="appSecret", label="APP SECRET", type="password"),
+    ],
+}
+
 
 @router.get("", response_model=BrokerListResponse)
 def list_brokers(_: User = Depends(get_current_user)) -> BrokerListResponse:
     items: list[BrokerOption] = []
     for entry in BROKER_CATALOG:
-        fields = _KIS_FIELDS if entry.code == "kis" else []
+        fields = _API_CONNECT_FIELDS.get(entry.code, [])
         items.append(
             BrokerOption(
                 code=entry.code,

@@ -62,7 +62,7 @@ export function AccountFormDialog({
           code: 'kiwoom',
           name: '키움증권',
           connectionMode: 'api',
-          apiConnectAvailable: false,
+          apiConnectAvailable: true,
           supportedMarkets: { domestic: true, us: [] },
           fields: [],
         },
@@ -163,7 +163,13 @@ export function AccountFormDialog({
         await updateAccount(account.id, { name, broker, description })
       } else if (tab === 'api') {
         const acctDigits = accountNumber.replace(/\D/g, '')
-        if (acctDigits.length !== 8 && acctDigits.length !== 10) {
+        const isKiwoom = brokerCode === 'kiwoom'
+        if (isKiwoom) {
+          if (acctDigits.length < 8 || acctDigits.length > 10) {
+            setError('키움 계좌번호는 8~10자리 숫자를 입력해주세요.')
+            return
+          }
+        } else if (acctDigits.length !== 8 && acctDigits.length !== 10) {
           setError('계좌번호 8자리(종합) 또는 10자리(종합+상품코드)를 입력해주세요.')
           return
         }
@@ -260,7 +266,7 @@ export function AccountFormDialog({
                 {!apiConnectAvailable && (
                   <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-900">
                     <strong>{selectedBroker?.name ?? '선택한 증권사'}</strong>는 아직 API 연동을 지원하지 않습니다.
-                    증권사를 <strong>한국투자증권</strong>으로 선택해 주세요.
+                    <strong>한국투자증권</strong> 또는 <strong>키움증권</strong>을 선택해 주세요.
                   </p>
                 )}
               </div>
@@ -274,9 +280,12 @@ export function AccountFormDialog({
                   required
                 />
                 <p className="mt-1 text-xs text-slate-500">
-                  종합계좌 8자리만 입력하거나, 뒤 상품코드 2자리까지 10자리로 입력할 수 있습니다.
+                  {brokerCode === 'kiwoom'
+                    ? '키움 종합계좌 번호(8~10자리)를 입력해주세요.'
+                    : '종합계좌 8자리만 입력하거나, 뒤 상품코드 2자리까지 10자리로 입력할 수 있습니다.'}
                 </p>
               </div>
+              {brokerCode !== 'kiwoom' && (
               <div>
                 <Label>계좌상품코드</Label>
                 <Input
@@ -287,6 +296,7 @@ export function AccountFormDialog({
                 />
                 <p className="mt-1 text-xs text-slate-500">한국투자증권 계좌상품코드 (일반적으로 01)</p>
               </div>
+              )}
               <div className="rounded-lg border border-slate-200 p-3">
                 <Label>포함할 시장</Label>
                 <div className="mt-2 space-y-2">
@@ -408,7 +418,7 @@ export function AccountFormDialog({
           {error && <p className="text-sm text-red-600">{error}</p>}
           {!account && tab === 'api' && !apiConnectAvailable && (
             <p className="text-sm text-amber-800">
-              연동 후 추가 버튼은 <strong>한국투자증권</strong>을 선택했을 때만 사용할 수 있습니다.
+              연동 후 추가 버튼은 <strong>한국투자증권</strong> 또는 <strong>키움증권</strong>을 선택했을 때만 사용할 수 있습니다.
             </p>
           )}
           <div className="flex justify-end gap-2">
