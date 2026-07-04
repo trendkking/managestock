@@ -87,7 +87,7 @@ def test_issue_token_reports_return_msg_when_token_missing():
     token_response.status_code = 200
     token_response.json.return_value = {
         "return_code": 3,
-        "return_msg": "앱키가 올바르지 않습니다",
+        "return_msg": "인증에 실패했습니다[8050:지정단말기 인증에 실패했습니다]",
     }
 
     mock_client = MagicMock()
@@ -95,11 +95,36 @@ def test_issue_token_reports_return_msg_when_token_missing():
     mock_client.post.return_value = token_response
 
     with patch("app.brokers.kiwoom.httpx.Client", return_value=mock_client):
-        try:
-            adapter.issue_token(creds)
-            assert False, "expected BrokerError"
-        except BrokerError as exc:
-            assert "앱키가 올바르지 않습니다" in str(exc)
+        with patch("app.brokers.kiwoom.fetch_server_public_ip", return_value="13.209.46.108"):
+            with pytest.raises(BrokerError) as exc:
+                adapter.issue_token(creds)
+    assert "8050" in str(exc.value)
+    assert "13.209.46.108" in str(exc.value)
+    assert "IP" in str(exc.value)
+
+
+def test_issue_token_with_environment_skips_mock_after_terminal_auth_error():
+    creds = KiwoomCredentials(app_key="k", app_secret="s", account_number="12345678")
+
+    live_fail = MagicMock()
+    live_fail.status_code = 200
+    live_fail.json.return_value = {
+        "return_code": 3,
+        "return_msg": "인증에 실패했습니다[8050:지정단말기 인증에 실패했습니다]",
+    }
+
+    mock_client = MagicMock()
+    mock_client.__enter__.return_value = mock_client
+    mock_client.post.return_value = live_fail
+
+    with patch("app.brokers.kiwoom.httpx.Client", return_value=mock_client):
+        with patch("app.brokers.kiwoom.fetch_server_public_ip", return_value="1.2.3.4"):
+            with pytest.raises(BrokerError) as exc:
+                KiwoomBrokerAdapter.issue_token_with_environment(creds)
+
+    assert mock_client.post.call_count == 1
+    assert "8050" in str(exc.value)
+    assert "8030" not in str(exc.value)
 
 
 def test_issue_token_with_environment_falls_back_to_mock():
@@ -107,7 +132,10 @@ def test_issue_token_with_environment_falls_back_to_mock():
 
     live_fail = MagicMock()
     live_fail.status_code = 200
-    live_fail.json.return_value = {"return_code": 1, "return_msg": "live fail"}
+    live_fail.json.return_value = {
+        "return_code": 2,
+        "return_msg": "입력 값 오류입니다[8030:투자구분(실전/모의)이 달라서 Appkey를 사용할수가 없습니다]",
+    }
 
     mock_ok = MagicMock()
     mock_ok.status_code = 200

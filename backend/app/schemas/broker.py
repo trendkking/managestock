@@ -31,6 +31,12 @@ class BrokerListResponse(CamelModel):
     items: list[BrokerOption]
 
 
+class KiwoomServerIpResponse(CamelModel):
+    public_ip: str | None = None
+    register_url: str
+    instructions: str
+
+
 class AccountConnectRequest(CamelModel):
     name: str = Field(min_length=1, max_length=50)
     broker_code: str = Field(min_length=1, max_length=20)

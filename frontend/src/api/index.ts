@@ -47,6 +47,10 @@ export const dashboardApi = {
 
 export const brokersApi = {
   list: () => apiClient.get<{ items: BrokerOption[] }>('/brokers').then((r) => r.data),
+  kiwoomServerIp: () =>
+    apiClient
+      .get<{ publicIp: string | null; registerUrl: string; instructions: string }>('/brokers/kiwoom/server-ip')
+      .then((r) => r.data),
 }
 
 export const accountsApi = {

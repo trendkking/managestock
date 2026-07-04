@@ -45,6 +45,7 @@ export function AccountFormDialog({
   const [usExchanges, setUsExchanges] = useState<string[]>(['NASD', 'NYSE'])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [kiwoomServerIp, setKiwoomServerIp] = useState<string | null>(null)
 
   useEffect(() => {
     if (!open || account) return
@@ -150,6 +151,17 @@ export function AccountFormDialog({
       setSyncDomestic(true)
     }
   }, [brokerCode, supportedUsCodesKey, supportsUs, supportsDomestic, syncUs, open, account, tab])
+
+  useEffect(() => {
+    if (!open || account || tab !== 'api' || brokerCode !== 'kiwoom' || USE_MOCK) {
+      setKiwoomServerIp(null)
+      return
+    }
+    brokersApi
+      .kiwoomServerIp()
+      .then((res) => setKiwoomServerIp(res.publicIp))
+      .catch(() => setKiwoomServerIp(null))
+  }, [open, account, tab, brokerCode])
 
   if (!open) return null
 
@@ -357,6 +369,20 @@ export function AccountFormDialog({
               </div>
               <div>
                 <Label>APP KEY</Label>
+                {brokerCode === 'kiwoom' && (
+                  <p className="mt-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-950">
+                    <strong>실전투자</strong> APP KEY는 키움 개발자센터에서 <strong>서버 공인 IP</strong>를 등록해야
+                    연동됩니다.
+                    <br />
+                    openapi.kiwoom.com → API 사용신청 → 계좌 App Key 관리 → IP 주소 추가
+                    {kiwoomServerIp ? (
+                      <>
+                        <br />
+                        등록할 서버 IP: <span className="font-mono font-semibold">{kiwoomServerIp}</span>
+                      </>
+                    ) : null}
+                  </p>
+                )}
                 <Input
                   value={appKey}
                   onChange={(e) => setAppKey(e.target.value)}

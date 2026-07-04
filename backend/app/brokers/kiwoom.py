@@ -20,6 +20,48 @@ from app.utils.time import utc_now
 KIWOOM_SYNC_MEMO_PREFIX = sync_memo_prefix("kiwoom")
 KIWOOM_API_MIN_INTERVAL_SEC = 0.4
 ACCOUNT_ENDPOINT = "/api/dostk/acnt"
+KIWOOM_TERMINAL_AUTH_MARKERS = ("8050", "8040", "지정단말기", "단말기 인증")
+KIWOOM_ENV_MISMATCH_MARKERS = ("8030", "실전/모의")
+
+
+def _error_matches(msg: str, markers: tuple[str, ...]) -> bool:
+    return any(marker in msg for marker in markers)
+
+
+def fetch_server_public_ip() -> str | None:
+    for url in ("https://checkip.amazonaws.com/", "https://api.ipify.org?format=text"):
+        try:
+            with httpx.Client(timeout=3.0) as client:
+                response = client.get(url)
+            if response.status_code == 200:
+                ip = response.text.strip()
+                if ip:
+                    return ip
+        except Exception:
+            continue
+    return None
+
+
+def enrich_kiwoom_terminal_auth_error(message: str) -> str:
+    hint = (
+        "키움 실전 API는 API를 호출하는 서버의 공인 IP를 키움 개발자센터에 등록해야 합니다. "
+        "openapi.kiwoom.com → API 사용신청 → 계좌 App Key 관리 → IP 주소 추가"
+    )
+    ip = fetch_server_public_ip()
+    if ip:
+        hint += f" (등록할 서버 IP: {ip})"
+    return f"{message}. {hint}"
+
+
+def format_kiwoom_connect_error(message: str) -> str:
+    if _error_matches(message, KIWOOM_TERMINAL_AUTH_MARKERS):
+        return enrich_kiwoom_terminal_auth_error(message)
+    if _error_matches(message, KIWOOM_ENV_MISMATCH_MARKERS):
+        return (
+            f"{message}. "
+            "발급받은 APP KEY가 실전투자용이면 실전 API만, 모의투자용이면 모의 API만 사용할 수 있습니다."
+        )
+    return message
 
 
 def _parse_decimal(value) -> Decimal:
@@ -190,7 +232,8 @@ class KiwoomBrokerAdapter:
 
         return_code = data.get("return_code")
         if return_code is not None and str(return_code) not in ("0", "00"):
-            raise BrokerError(f"키움 토큰 발급 실패: {self._parse_api_error(data)}")
+            err = f"키움 토큰 발급 실패: {self._parse_api_error(data)}"
+            raise BrokerError(format_kiwoom_connect_error(err))
 
         token = data.get("token") or data.get("access_token") or data.get("accessToken")
         if not token and isinstance(data.get("body"), dict):
@@ -238,13 +281,13 @@ class KiwoomBrokerAdapter:
         *,
         prefer_virtual: bool | None = None,
     ) -> tuple[str, int, bool]:
-        """Try configured environment first, then the alternate (실전 ↔ 모의)."""
+        """Try configured environment first, then alternate only when env mismatch is likely."""
         if prefer_virtual is None:
             candidates = [settings.KIWOOM_USE_VIRTUAL, not settings.KIWOOM_USE_VIRTUAL]
         else:
             candidates = [prefer_virtual, not prefer_virtual]
 
-        errors: list[str] = []
+        primary_error: BrokerError | None = None
         tried: set[bool] = set()
         for use_virtual in candidates:
             if use_virtual in tried:
@@ -255,11 +298,18 @@ class KiwoomBrokerAdapter:
                 token, expires_in = adapter.issue_token(creds)
                 return token, expires_in, use_virtual
             except BrokerError as exc:
-                errors.append(str(exc))
+                msg = str(exc)
+                if primary_error is None:
+                    primary_error = exc
+                if _error_matches(msg, KIWOOM_TERMINAL_AUTH_MARKERS):
+                    raise BrokerError(format_kiwoom_connect_error(msg)) from exc
+                if _error_matches(msg, KIWOOM_ENV_MISMATCH_MARKERS):
+                    continue
+                raise
 
-        if len(errors) == 1:
-            raise BrokerError(errors[0])
-        raise BrokerError(" / ".join(errors))
+        if primary_error is not None:
+            raise BrokerError(format_kiwoom_connect_error(str(primary_error)))
+        raise BrokerError("키움 토큰 발급에 실패했습니다.")
 
     def verify_credentials(self, creds: KiwoomCredentials) -> str:
         token, _ = self.issue_token(creds)

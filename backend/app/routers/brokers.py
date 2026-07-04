@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends
 
+from app.brokers.kiwoom import fetch_server_public_ip
 from app.brokers.catalog import BROKER_CATALOG
 from app.dependencies import get_current_user
 from app.models import User
-from app.schemas.broker import BrokerFieldSchema, BrokerListResponse, BrokerOption, SupportedMarketsSchema
+from app.schemas.broker import BrokerFieldSchema, BrokerListResponse, BrokerOption, KiwoomServerIpResponse, SupportedMarketsSchema
 
 router = APIRouter(prefix="/brokers", tags=["brokers"])
 
@@ -58,3 +59,16 @@ def list_brokers(_: User = Depends(get_current_user)) -> BrokerListResponse:
             )
         )
     return BrokerListResponse(items=items)
+
+
+@router.get("/kiwoom/server-ip", response_model=KiwoomServerIpResponse)
+def kiwoom_server_ip(_: User = Depends(get_current_user)) -> KiwoomServerIpResponse:
+    ip = fetch_server_public_ip()
+    return KiwoomServerIpResponse(
+        public_ip=ip,
+        register_url="https://openapi.kiwoom.com",
+        instructions=(
+            "키움 실전 API 연동 시 openapi.kiwoom.com → API 사용신청 → 계좌 App Key 관리에서 "
+            "아래 공인 IP를 등록해주세요. (모의투자 키는 IP 등록이 필요 없습니다.)"
+        ),
+    )
