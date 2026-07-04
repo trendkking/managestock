@@ -380,13 +380,6 @@ def sync_account_from_broker(db: Session, account: Account) -> Account:
         sync_us=sync_us,
     )
 
-    trade_sync_error: str | None = None
-    if sync_domestic:
-        try:
-            _sync_domestic_trades_from_broker(db, account, adapter, creds, access_token=token)
-        except BrokerError as exc:
-            trade_sync_error = str(exc)
-
     holdings = list(db.scalars(select(Holding).where(Holding.account_id == account.id)).all())
     _repair_account_baseline_if_needed(
         account,
@@ -396,9 +389,6 @@ def sync_account_from_broker(db: Session, account: Account) -> Account:
         usd_krw_rate=balance.usd_krw_rate,
     )
     upsert_account_snapshot(db, account, holdings, date.today())
-
-    if trade_sync_error:
-        account.last_sync_error = f"매매내역 동기화 실패: {trade_sync_error}"
 
     db.flush()
     return account

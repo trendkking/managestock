@@ -82,7 +82,7 @@ export default function AccountDetailPage() {
 
       {isApiAccount && (
         <div className="mb-4 rounded-lg border border-red-100 bg-primary-subtle px-4 py-3 text-sm text-primary-darker">
-          한국투자증권 API 연동 계좌입니다. 잔고·보유종목은 「API 동기화」로, 매매내역은 탭에서 기간 선택 시 체결 내역을 불러옵니다.
+          API 연동 계좌입니다. 잔고·보유종목은 「API 동기화」로, 매매내역은 탭에서 기간 선택 시 체결 내역을 불러옵니다.
           <span className="mt-1 block text-primary-darker">
             동기화 범위: {formatSyncScope(account.syncDomestic, account.syncUsMarkets)}
           </span>

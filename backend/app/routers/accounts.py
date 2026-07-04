@@ -1,5 +1,7 @@
 from datetime import date
 
+import httpx
+from cryptography.fernet import InvalidToken
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
@@ -145,6 +147,13 @@ def connect_account(
     except BrokerError as exc:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except (InvalidToken, httpx.HTTPError) as exc:
+        db.rollback()
+        if isinstance(exc, InvalidToken):
+            detail = "저장된 API 인증 정보를 읽을 수 없습니다. 계좌를 삭제한 뒤 다시 연동해주세요."
+        else:
+            detail = "증권사 API 서버와 통신하지 못했습니다. 잠시 후 다시 시도해주세요."
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail) from exc
 
 
 @router.post("/{account_id}/sync", response_model=AccountStatsResponse)
@@ -166,6 +175,24 @@ def sync_account(
         account.updated_at = utc_now()
         db.commit()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except InvalidToken as exc:
+        account.sync_status = "error"
+        account.last_sync_error = "API 인증 정보를 복호화할 수 없습니다."
+        account.updated_at = utc_now()
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="저장된 API 인증 정보를 읽을 수 없습니다. 계좌를 삭제한 뒤 다시 연동해주세요.",
+        ) from exc
+    except httpx.HTTPError as exc:
+        account.sync_status = "error"
+        account.last_sync_error = f"증권사 API 통신 오류: {exc}"
+        account.updated_at = utc_now()
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="증권사 API 서버와 통신하지 못했습니다. 잠시 후 다시 시도해주세요.",
+        ) from exc
 
 
 @router.get("/{account_id}", response_model=AccountDetailResponse)
@@ -292,6 +319,13 @@ def import_trades(
     except BrokerError as exc:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except (InvalidToken, httpx.HTTPError) as exc:
+        db.rollback()
+        if isinstance(exc, InvalidToken):
+            detail = "저장된 API 인증 정보를 읽을 수 없습니다. 계좌를 삭제한 뒤 다시 연동해주세요."
+        else:
+            detail = "증권사 API 서버와 통신하지 못했습니다. 잠시 후 다시 시도해주세요."
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail) from exc
 
 
 @router.post("/{account_id}/trades", response_model=TradeResponse, status_code=status.HTTP_201_CREATED)
