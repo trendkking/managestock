@@ -121,6 +121,16 @@ export function AccountFormDialog({
   const apiConnectAvailable = selectedBroker?.apiConnectAvailable ?? true
 
   useEffect(() => {
+    if (!open || account || tab !== 'api' || brokers.length === 0) return
+    const selected = brokers.find((b) => b.code === brokerCode)
+    if (selected?.apiConnectAvailable) return
+    const firstAvailable = brokers.find((b) => b.apiConnectAvailable)
+    if (firstAvailable) {
+      setBrokerCode(firstAvailable.code)
+    }
+  }, [brokers, brokerCode, open, account, tab])
+
+  useEffect(() => {
     if (!open || account || tab !== 'api') return
     const allowed: string[] = supportedUsCodesKey ? supportedUsCodesKey.split(',') : []
     if (!supportsUs) {
@@ -237,9 +247,9 @@ export function AccountFormDialog({
                 <Label>증권사</Label>
                 <Select value={brokerCode} onChange={(e) => setBrokerCode(e.target.value)} className="mt-1">
                   {brokers.map((b) => (
-                    <option key={b.code} value={b.code}>
+                    <option key={b.code} value={b.code} disabled={b.apiConnectAvailable === false}>
                       {b.name}
-                      {brokerSupportsUs(b) ? ' · 국내·미국' : ' · 국내'}
+                      {b.apiConnectAvailable === false ? ' (API 준비 중)' : brokerSupportsUs(b) ? ' · 국내·미국' : ' · 국내'}
                     </option>
                   ))}
                   {brokers.length === 0 && <option value="kis">한국투자증권 · 국내·미국</option>}
@@ -248,8 +258,9 @@ export function AccountFormDialog({
                   <p className="mt-2 rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-700">{marketNotice}</p>
                 )}
                 {!apiConnectAvailable && (
-                  <p className="mt-2 text-xs text-amber-800">
-                    API 연동은 한국투자증권만 가능합니다. 다른 증권사는 추후 지원 예정입니다.
+                  <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                    <strong>{selectedBroker?.name ?? '선택한 증권사'}</strong>는 아직 API 연동을 지원하지 않습니다.
+                    증권사를 <strong>한국투자증권</strong>으로 선택해 주세요.
                   </p>
                 )}
               </div>
@@ -395,6 +406,11 @@ export function AccountFormDialog({
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
+          {!account && tab === 'api' && !apiConnectAvailable && (
+            <p className="text-sm text-amber-800">
+              연동 후 추가 버튼은 <strong>한국투자증권</strong>을 선택했을 때만 사용할 수 있습니다.
+            </p>
+          )}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               취소
