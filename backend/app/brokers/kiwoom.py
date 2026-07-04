@@ -171,32 +171,95 @@ class KiwoomBrokerAdapter:
         nkey = response.headers.get("next-key", "")
         return data, cont, nkey
 
-    def issue_token(self, creds: KiwoomCredentials) -> tuple[str, int]:
-        url = f"{self.base_url}/oauth2/token"
-        payload = {
-            "grant_type": "client_credentials",
-            "appkey": creds.app_key,
-            "secretkey": creds.app_secret,
-        }
-        with httpx.Client(timeout=30.0) as client:
-            response = client.post(
-                url,
-                headers={"Content-Type": "application/json;charset=UTF-8"},
-                json=payload,
-            )
+    def _parse_token_response(self, response: httpx.Response) -> tuple[str, int]:
         if response.status_code != 200:
-            raise BrokerError(f"키움 토큰 발급 실패: {self._parse_error(response)}", status_code=response.status_code)
-        data = response.json()
-        token = data.get("token")
+            raise BrokerError(
+                f"키움 토큰 발급 실패: {self._parse_error(response)}",
+                status_code=response.status_code,
+            )
+
+        try:
+            data = response.json()
+        except Exception as exc:
+            raise BrokerError(
+                f"키움 토큰 응답을 읽을 수 없습니다: {response.text[:200]}"
+            ) from exc
+
+        if not isinstance(data, dict):
+            raise BrokerError("키움 토큰 응답 형식이 올바르지 않습니다.")
+
+        return_code = data.get("return_code")
+        if return_code is not None and str(return_code) not in ("0", "00"):
+            raise BrokerError(f"키움 토큰 발급 실패: {self._parse_api_error(data)}")
+
+        token = data.get("token") or data.get("access_token") or data.get("accessToken")
+        if not token and isinstance(data.get("body"), dict):
+            body = data["body"]
+            token = body.get("token") or body.get("access_token") or body.get("accessToken")
+
         if not token:
-            raise BrokerError("키움 토큰 응답에 token이 없습니다.")
+            msg = str(data.get("return_msg") or "접근 토큰이 응답에 없습니다.")
+            env = "모의투자(mockapi)" if self.use_virtual else "실전투자(api)"
+            raise BrokerError(
+                f"키움 토큰 발급 실패({env}): {msg}. "
+                "APP KEY/SECRET이 맞는지, 키움 개발자센터에서 발급한 환경(실전/모의)과 일치하는지 확인해주세요."
+            )
+
         expires_dt = str(data.get("expires_dt") or "")
         if len(expires_dt) == 14 and expires_dt.isdigit():
             expires_at = datetime.strptime(expires_dt, "%Y%m%d%H%M%S")
             expires_in = max(int((expires_at - utc_now()).total_seconds()), 60)
         else:
-            expires_in = 86400
-        return token, expires_in
+            expires_in = int(data.get("expires_in") or 86400)
+        return str(token), expires_in
+
+    def issue_token(self, creds: KiwoomCredentials) -> tuple[str, int]:
+        url = f"{self.base_url}/oauth2/token"
+        payload = {
+            "grant_type": "client_credentials",
+            "appkey": creds.app_key.strip(),
+            "secretkey": creds.app_secret.strip(),
+        }
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(
+                url,
+                headers={
+                    "Content-Type": "application/json;charset=UTF-8",
+                    "api-id": "au10001",
+                },
+                json=payload,
+            )
+        return self._parse_token_response(response)
+
+    @classmethod
+    def issue_token_with_environment(
+        cls,
+        creds: KiwoomCredentials,
+        *,
+        prefer_virtual: bool | None = None,
+    ) -> tuple[str, int, bool]:
+        """Try configured environment first, then the alternate (실전 ↔ 모의)."""
+        if prefer_virtual is None:
+            candidates = [settings.KIWOOM_USE_VIRTUAL, not settings.KIWOOM_USE_VIRTUAL]
+        else:
+            candidates = [prefer_virtual, not prefer_virtual]
+
+        errors: list[str] = []
+        tried: set[bool] = set()
+        for use_virtual in candidates:
+            if use_virtual in tried:
+                continue
+            tried.add(use_virtual)
+            adapter = cls(use_virtual=use_virtual)
+            try:
+                token, expires_in = adapter.issue_token(creds)
+                return token, expires_in, use_virtual
+            except BrokerError as exc:
+                errors.append(str(exc))
+
+        if len(errors) == 1:
+            raise BrokerError(errors[0])
+        raise BrokerError(" / ".join(errors))
 
     def verify_credentials(self, creds: KiwoomCredentials) -> str:
         token, _ = self.issue_token(creds)

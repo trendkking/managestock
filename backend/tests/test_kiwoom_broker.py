@@ -1,6 +1,9 @@
 import json
 from unittest.mock import MagicMock, patch
 
+import pytest
+
+from app.brokers.base import BrokerError
 from app.brokers.kiwoom import KiwoomBrokerAdapter, KiwoomCredentials, parse_kt00015_trade_row
 
 
@@ -14,7 +17,7 @@ def test_issue_token_and_fetch_balance():
 
     token_response = MagicMock()
     token_response.status_code = 200
-    token_response.json.return_value = {"token": "abc", "expires_dt": "20991231235959"}
+    token_response.json.return_value = {"return_code": 0, "token": "abc", "expires_dt": "20991231235959"}
 
     balance_response = MagicMock()
     balance_response.status_code = 200
@@ -74,6 +77,61 @@ def test_parse_kt00015_trade_row_buy():
     assert trade.quantity == 5
     assert trade.stock_code == "005930"
     assert trade.external_id
+
+
+def test_issue_token_reports_return_msg_when_token_missing():
+    adapter = KiwoomBrokerAdapter(use_virtual=False)
+    creds = KiwoomCredentials(app_key="bad", app_secret="bad", account_number="12345678")
+
+    token_response = MagicMock()
+    token_response.status_code = 200
+    token_response.json.return_value = {
+        "return_code": 3,
+        "return_msg": "앱키가 올바르지 않습니다",
+    }
+
+    mock_client = MagicMock()
+    mock_client.__enter__.return_value = mock_client
+    mock_client.post.return_value = token_response
+
+    with patch("app.brokers.kiwoom.httpx.Client", return_value=mock_client):
+        try:
+            adapter.issue_token(creds)
+            assert False, "expected BrokerError"
+        except BrokerError as exc:
+            assert "앱키가 올바르지 않습니다" in str(exc)
+
+
+def test_issue_token_with_environment_falls_back_to_mock():
+    creds = KiwoomCredentials(app_key="k", app_secret="s", account_number="12345678")
+
+    live_fail = MagicMock()
+    live_fail.status_code = 200
+    live_fail.json.return_value = {"return_code": 1, "return_msg": "live fail"}
+
+    mock_ok = MagicMock()
+    mock_ok.status_code = 200
+    mock_ok.json.return_value = {
+        "return_code": 0,
+        "token": "mock-token",
+        "expires_dt": "20991231235959",
+    }
+
+    def post_side_effect(url, **kwargs):
+        if "mockapi.kiwoom.com" in url:
+            return mock_ok
+        return live_fail
+
+    mock_client = MagicMock()
+    mock_client.__enter__.return_value = mock_client
+    mock_client.post.side_effect = post_side_effect
+
+    with patch("app.brokers.kiwoom.httpx.Client", return_value=mock_client):
+        token, expires, use_virtual = KiwoomBrokerAdapter.issue_token_with_environment(creds)
+
+    assert token == "mock-token"
+    assert use_virtual is True
+    assert expires > 0
 
 
 def test_fetch_domestic_trades():

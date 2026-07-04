@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.brokers.base import BrokerError
 from app.brokers.factory import get_broker_adapter, is_api_broker
 from app.brokers.kis import KIS_SYNC_MEMO_PREFIX, KISBrokerAdapter, KISCredentials, US_EXCHANGE_CODES
-from app.brokers.kiwoom import KiwoomCredentials
+from app.brokers.kiwoom import KiwoomBrokerAdapter, KiwoomCredentials
 from app.brokers.sync_config import extra_json, parse_extra, parse_sync_config, sync_memo_prefix
 from app.models import Account, AccountCredential, Holding, Trade
 from app.services.calculations import account_stats, holdings_unrealized_pnl_krw
@@ -187,7 +187,7 @@ def import_domestic_trades_range(
     if not sync_domestic:
         raise BrokerError("국내 주식 동기화가 설정되어 있지 않습니다.")
 
-    adapter = get_broker_adapter(account.broker_code)
+    adapter = get_broker_adapter(account.broker_code, extra_json_raw=account.credential.extra_json)
     creds = adapter.build_credentials(account.credential, account)
     token = _ensure_access_token(db, account, adapter, creds)
     broker_trades = adapter.fetch_domestic_trades(
@@ -358,7 +358,7 @@ def sync_account_from_broker(db: Session, account: Account) -> Account:
     if account.credential is None:
         raise BrokerError("API 연동 정보가 없습니다.")
 
-    adapter = get_broker_adapter(account.broker_code)
+    adapter = get_broker_adapter(account.broker_code, extra_json_raw=account.credential.extra_json)
     sync_domestic, sync_us = parse_sync_config(account.credential.extra_json)
     if not sync_domestic and not sync_us:
         raise BrokerError("동기화할 시장(국내 주식 또는 미국 주식)이 설정되어 있지 않습니다.")
@@ -423,7 +423,7 @@ def connect_broker_account(
     if not sync_domestic and not us_codes:
         raise BrokerError("국내 주식 또는 미국 주식 중 최소 하나를 선택해주세요.")
 
-    adapter = get_broker_adapter(broker_code)
+    kiwoom_use_virtual: bool | None = None
     if broker_code == "kis":
         creds = KISCredentials(
             app_key=app_key.strip(),
@@ -431,16 +431,19 @@ def connect_broker_account(
             account_number=cano,
             account_product_code=product_code,
         )
+        adapter = get_broker_adapter(broker_code)
+        token, expires_in = adapter.issue_token(creds)
     elif broker_code == "kiwoom":
         creds = KiwoomCredentials(
             app_key=app_key.strip(),
             app_secret=app_secret.strip(),
             account_number=cano,
         )
+        token, expires_in, kiwoom_use_virtual = KiwoomBrokerAdapter.issue_token_with_environment(creds)
+        adapter = KiwoomBrokerAdapter(use_virtual=kiwoom_use_virtual)
     else:
         raise BrokerError(f"지원하지 않는 증권사 코드입니다: {broker_code}")
 
-    token, expires_in = adapter.issue_token(creds)
     balance = adapter.fetch_combined_balance(
         creds,
         access_token=token,
@@ -479,6 +482,7 @@ def connect_broker_account(
             sync_us=us_codes,
             usd_krw_rate=balance.usd_krw_rate,
             stats_baseline_v=2,
+            kiwoom_use_virtual=kiwoom_use_virtual,
         ),
     )
     db.add(credential)
