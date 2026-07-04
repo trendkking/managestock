@@ -191,7 +191,7 @@ def sync_account(
         db.commit()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="증권사 API 서버와 통신하지 못했습니다. 잠시 후 다시 시도해주세요.",
+            detail=f"증권사 API 서버와 통신하지 못했습니다 ({type(exc).__name__}). 잠시 후 다시 시도해주세요.",
         ) from exc
 
 

@@ -17,6 +17,10 @@ def get_broker_adapter(broker_code: str, *, extra_json_raw: str | None = None):
         extra = parse_extra(extra_json_raw)
         if extra.get("kiwoomUseVirtual") is not None:
             return KiwoomBrokerAdapter(use_virtual=bool(extra["kiwoomUseVirtual"]))
+    if broker_code == "kis":
+        extra = parse_extra(extra_json_raw)
+        if extra.get("kisUseVirtual") is not None:
+            return KISBrokerAdapter(use_virtual=bool(extra["kisUseVirtual"]))
     return factory()
 
 

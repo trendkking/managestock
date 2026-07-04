@@ -22,6 +22,7 @@ def extra_json(
     usd_krw_rate: Decimal | None = None,
     stats_baseline_v: int = 2,
     kiwoom_use_virtual: bool | None = None,
+    kis_use_virtual: bool | None = None,
 ) -> str:
     us_codes = [code for code in (sync_us or []) if code in US_EXCHANGE_CODES]
     payload: dict = {
@@ -33,6 +34,8 @@ def extra_json(
         payload["usdKrwRate"] = float(usd_krw_rate)
     if kiwoom_use_virtual is not None:
         payload["kiwoomUseVirtual"] = kiwoom_use_virtual
+    if kis_use_virtual is not None:
+        payload["kisUseVirtual"] = kis_use_virtual
     return json.dumps(payload)
 
 
@@ -56,6 +59,9 @@ def parse_extra(extra_json_raw: str | None) -> dict:
     kiwoom_use_virtual = data.get("kiwoomUseVirtual")
     if kiwoom_use_virtual is not None:
         kiwoom_use_virtual = bool(kiwoom_use_virtual)
+    kis_use_virtual = data.get("kisUseVirtual")
+    if kis_use_virtual is not None:
+        kis_use_virtual = bool(kis_use_virtual)
     return {
         "accountProductCode": str(data.get("accountProductCode", "01")),
         "sync": {
@@ -65,6 +71,7 @@ def parse_extra(extra_json_raw: str | None) -> dict:
         "usdKrwRate": usd_krw_rate if usd_krw_rate > 0 else None,
         "statsBaselineV": stats_baseline_v,
         "kiwoomUseVirtual": kiwoom_use_virtual,
+        "kisUseVirtual": kis_use_virtual,
     }
 
 

@@ -1,4 +1,5 @@
 import json
+import socket
 import time
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
@@ -24,6 +25,39 @@ DOMESTIC_CCLD_INNER_DAYS = 92
 DOMESTIC_CCLD_CHUNK_DAYS = 90
 DOMESTIC_CCLD_MAX_RANGE_DAYS = 365
 KIS_API_MIN_INTERVAL_SEC = 0.4
+KIS_HTTP_TIMEOUT = httpx.Timeout(60.0, connect=20.0)
+
+
+def kis_host_port(use_virtual: bool) -> tuple[str, int]:
+    if use_virtual:
+        return "openapivts.koreainvestment.com", 29443
+    return "openapi.koreainvestment.com", 9443
+
+
+def probe_kis_tcp(use_virtual: bool, *, timeout: float = 10.0) -> tuple[bool, str | None]:
+    host, port = kis_host_port(use_virtual)
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True, None
+    except OSError as exc:
+        return False, str(exc)
+
+
+def format_kis_http_error(exc: httpx.HTTPError, *, operation: str, use_virtual: bool) -> str:
+    env = "모의투자(VTS)" if use_virtual else "실전투자"
+    host, port = kis_host_port(use_virtual)
+    if isinstance(exc, httpx.ConnectError):
+        return (
+            f"KIS {operation} 실패: {env} 서버({host}:{port})에 연결할 수 없습니다. "
+            "서버 outbound 방화벽에서 해당 포트가 열려 있는지, "
+            f"KIS 개발자센터에서 발급한 App Key가 {env}용인지 확인해주세요."
+        )
+    if isinstance(exc, httpx.TimeoutException):
+        return (
+            f"KIS {operation} 실패: {env} 서버({host}:{port}) 응답 시간이 초과되었습니다. "
+            "잠시 후 다시 시도해주세요."
+        )
+    return f"KIS {operation} 실패: {env} 서버 통신 오류({type(exc).__name__})"
 
 
 def _parse_decimal(value) -> Decimal:
@@ -302,6 +336,45 @@ class KISBrokerAdapter:
             self.us_balance_tr_id = "TTTS3012R"
             self.us_present_balance_tr_id = "CTRP6504R"
 
+    def _http_client(self) -> httpx.Client:
+        return httpx.Client(timeout=KIS_HTTP_TIMEOUT, follow_redirects=True)
+
+    def _raise_http_error(self, exc: httpx.HTTPError, *, operation: str) -> None:
+        raise BrokerError(format_kis_http_error(exc, operation=operation, use_virtual=self.use_virtual)) from exc
+
+    @classmethod
+    def issue_token_with_environment(
+        cls,
+        creds: KISCredentials,
+        *,
+        prefer_virtual: bool | None = None,
+    ) -> tuple[str, int, bool]:
+        if prefer_virtual is None:
+            candidates = [settings.KIS_USE_VIRTUAL, not settings.KIS_USE_VIRTUAL]
+        else:
+            candidates = [prefer_virtual, not prefer_virtual]
+
+        errors: list[BrokerError] = []
+        tried: set[bool] = set()
+        for use_virtual in candidates:
+            if use_virtual in tried:
+                continue
+            tried.add(use_virtual)
+            adapter = cls(use_virtual=use_virtual)
+            try:
+                token, expires_in = adapter.issue_token(creds)
+                return token, expires_in, use_virtual
+            except BrokerError as exc:
+                errors.append(exc)
+                if len(errors) >= 2:
+                    break
+
+        if len(errors) == 1:
+            raise errors[0]
+        if errors:
+            raise BrokerError(str(errors[0]))
+        raise BrokerError("KIS 토큰 발급에 실패했습니다.")
+
     def domestic_ccld_tr_id_for(self, pd_dv: str) -> str:
         """3개월 이내(inner) / 이전(before) TR ID."""
         inner = pd_dv == "inner"
@@ -337,8 +410,11 @@ class KISBrokerAdapter:
             "appsecret": creds.app_secret,
         }
         headers = {"content-type": "application/json; charset=UTF-8"}
-        with httpx.Client(timeout=30.0) as client:
-            response = client.post(url, content=json.dumps(payload), headers=headers)
+        try:
+            with self._http_client() as client:
+                response = client.post(url, content=json.dumps(payload), headers=headers)
+        except httpx.HTTPError as exc:
+            self._raise_http_error(exc, operation="토큰 발급")
         if response.status_code != 200:
             raise BrokerError(f"KIS 토큰 발급 실패: {self._parse_error(response)}", status_code=response.status_code)
         data = response.json()
@@ -380,67 +456,73 @@ class KISBrokerAdapter:
         cash = Decimal("0")
         total_eval = Decimal("0")
 
-        with httpx.Client(timeout=30.0) as client:
-            while True:
-                response = client.get(url, params=params, headers=headers)
-                if response.status_code != 200:
-                    raise BrokerError(
-                        f"KIS 잔고 조회 실패: {self._parse_error(response)}",
-                        status_code=response.status_code,
-                    )
-                data = response.json()
-                if str(data.get("rt_cd")) not in ("0", "00"):
-                    raise BrokerError(f"KIS 잔고 조회 실패: {self._parse_api_error(data)}")
-
-                summary = data.get("output2")
-                if isinstance(summary, list) and summary:
-                    row = summary[0]
-                    cash = Decimal(str(row.get("dnca_tot_amt") or row.get("nxdy_excc_amt") or 0))
-                    total_eval = Decimal(str(row.get("tot_evlu_amt") or row.get("nass_amt") or cash))
-                elif isinstance(summary, dict):
-                    cash = Decimal(str(summary.get("dnca_tot_amt") or summary.get("nxdy_excc_amt") or 0))
-                    total_eval = Decimal(str(summary.get("tot_evlu_amt") or summary.get("nass_amt") or cash))
-
-                for item in data.get("output1") or []:
-                    qty = _int_qty(item.get("hldg_qty"))
-                    if qty <= 0:
-                        continue
-                    code = str(item.get("pdno") or "").zfill(6)
-                    avg = _parse_decimal(item.get("pchs_avg_pric") or 0)
-                    price = _parse_decimal(item.get("prpr") or 0)
-                    purchase = _parse_decimal(item.get("pchs_amt") or 0)
-                    if purchase <= 0:
-                        purchase = avg * qty
-                    evaluation = _parse_decimal(item.get("evlu_amt") or 0)
-                    if evaluation <= 0:
-                        evaluation = price * qty
-                    sellable = _int_qty(item.get("ord_psbl_qty"))
-                    pnl = _parse_optional_decimal(item.get("evlu_pfls_amt"))
-                    ret = _parse_optional_decimal(item.get("evlu_pfls_rt"))
-                    holdings.append(
-                        BrokerHolding(
-                            stock_code=code,
-                            stock_name=str(item.get("prdt_name") or code),
-                            quantity=qty,
-                            avg_price=avg,
-                            current_price=price,
-                            market_type="domestic",
-                            orderable_quantity=sellable if sellable > 0 else qty,
-                            purchase_amount=purchase.quantize(Decimal("1")),
-                            evaluation_amount=evaluation.quantize(Decimal("1")),
-                            profit_loss=pnl,
-                            return_rate=ret,
-                            currency="KRW",
+        try:
+            with self._http_client() as client:
+                while True:
+                    try:
+                        response = client.get(url, params=params, headers=headers)
+                    except httpx.HTTPError as exc:
+                        self._raise_http_error(exc, operation="잔고 조회")
+                    if response.status_code != 200:
+                        raise BrokerError(
+                            f"KIS 잔고 조회 실패: {self._parse_error(response)}",
+                            status_code=response.status_code,
                         )
-                    )
+                    data = response.json()
+                    if str(data.get("rt_cd")) not in ("0", "00"):
+                        raise BrokerError(f"KIS 잔고 조회 실패: {self._parse_api_error(data)}")
 
-                tr_cont = response.headers.get("tr_cont", "")
-                if tr_cont in ("M", "F"):
-                    params["CTX_AREA_FK100"] = data.get("ctx_area_fk100") or ""
-                    params["CTX_AREA_NK100"] = data.get("ctx_area_nk100") or ""
-                    headers["tr_cont"] = "N"
-                    continue
-                break
+                    summary = data.get("output2")
+                    if isinstance(summary, list) and summary:
+                        row = summary[0]
+                        cash = Decimal(str(row.get("dnca_tot_amt") or row.get("nxdy_excc_amt") or 0))
+                        total_eval = Decimal(str(row.get("tot_evlu_amt") or row.get("nass_amt") or cash))
+                    elif isinstance(summary, dict):
+                        cash = Decimal(str(summary.get("dnca_tot_amt") or summary.get("nxdy_excc_amt") or 0))
+                        total_eval = Decimal(str(summary.get("tot_evlu_amt") or summary.get("nass_amt") or cash))
+
+                    for item in data.get("output1") or []:
+                        qty = _int_qty(item.get("hldg_qty"))
+                        if qty <= 0:
+                            continue
+                        code = str(item.get("pdno") or "").zfill(6)
+                        avg = _parse_decimal(item.get("pchs_avg_pric") or 0)
+                        price = _parse_decimal(item.get("prpr") or 0)
+                        purchase = _parse_decimal(item.get("pchs_amt") or 0)
+                        if purchase <= 0:
+                            purchase = avg * qty
+                        evaluation = _parse_decimal(item.get("evlu_amt") or 0)
+                        if evaluation <= 0:
+                            evaluation = price * qty
+                        sellable = _int_qty(item.get("ord_psbl_qty"))
+                        pnl = _parse_optional_decimal(item.get("evlu_pfls_amt"))
+                        ret = _parse_optional_decimal(item.get("evlu_pfls_rt"))
+                        holdings.append(
+                            BrokerHolding(
+                                stock_code=code,
+                                stock_name=str(item.get("prdt_name") or code),
+                                quantity=qty,
+                                avg_price=avg,
+                                current_price=price,
+                                market_type="domestic",
+                                orderable_quantity=sellable if sellable > 0 else qty,
+                                purchase_amount=purchase.quantize(Decimal("1")),
+                                evaluation_amount=evaluation.quantize(Decimal("1")),
+                                profit_loss=pnl,
+                                return_rate=ret,
+                                currency="KRW",
+                            )
+                        )
+
+                    tr_cont = response.headers.get("tr_cont", "")
+                    if tr_cont in ("M", "F"):
+                        params["CTX_AREA_FK100"] = data.get("ctx_area_fk100") or ""
+                        params["CTX_AREA_NK100"] = data.get("ctx_area_nk100") or ""
+                        headers["tr_cont"] = "N"
+                        continue
+                    break
+        except httpx.HTTPError as exc:
+            self._raise_http_error(exc, operation="잔고 조회")
 
         if total_eval <= 0:
             stock_value = sum(h.current_price * h.quantity for h in holdings)

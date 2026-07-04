@@ -63,10 +63,31 @@ def _ensure_access_token(db: Session, account: Account, adapter, creds) -> str:
         raise BrokerError("API 연동 정보가 없습니다.")
 
     now = utc_now()
-    if credential.access_token_encrypted and credential.token_expires_at and credential.token_expires_at > now:
+    expires_at = credential.token_expires_at
+    if expires_at is not None and getattr(expires_at, "tzinfo", None) is not None:
+        expires_at = expires_at.replace(tzinfo=None)
+    if credential.access_token_encrypted and expires_at and expires_at > now:
         return decrypt_secret(credential.access_token_encrypted)
 
-    token, expires_in = adapter.issue_token(creds)
+    if account.broker_code == "kis" and isinstance(adapter, KISBrokerAdapter):
+        extra = parse_extra(credential.extra_json)
+        prefer_virtual = extra.get("kisUseVirtual")
+        token, expires_in, use_virtual = KISBrokerAdapter.issue_token_with_environment(
+            creds,
+            prefer_virtual=prefer_virtual,
+        )
+        if prefer_virtual is None or prefer_virtual != use_virtual:
+            sync_domestic, sync_us = parse_sync_config(credential.extra_json)
+            credential.extra_json = extra_json(
+                str(extra.get("accountProductCode", "01")),
+                sync_domestic=sync_domestic,
+                sync_us=sync_us,
+                usd_krw_rate=extra.get("usdKrwRate"),
+                stats_baseline_v=int(extra.get("statsBaselineV", 2)),
+                kis_use_virtual=use_virtual,
+            )
+    else:
+        token, expires_in = adapter.issue_token(creds)
     credential.access_token_encrypted = encrypt_secret(token)
     credential.token_expires_at = adapter.token_expires_at(expires_in)
     db.flush()
@@ -414,6 +435,7 @@ def connect_broker_account(
         raise BrokerError("국내 주식 또는 미국 주식 중 최소 하나를 선택해주세요.")
 
     kiwoom_use_virtual: bool | None = None
+    kis_use_virtual: bool | None = None
     if broker_code == "kis":
         creds = KISCredentials(
             app_key=app_key.strip(),
@@ -421,8 +443,8 @@ def connect_broker_account(
             account_number=cano,
             account_product_code=product_code,
         )
-        adapter = get_broker_adapter(broker_code)
-        token, expires_in = adapter.issue_token(creds)
+        token, expires_in, kis_use_virtual = KISBrokerAdapter.issue_token_with_environment(creds)
+        adapter = KISBrokerAdapter(use_virtual=kis_use_virtual)
     elif broker_code == "kiwoom":
         creds = KiwoomCredentials(
             app_key=app_key.strip(),
@@ -473,6 +495,7 @@ def connect_broker_account(
             usd_krw_rate=balance.usd_krw_rate,
             stats_baseline_v=2,
             kiwoom_use_virtual=kiwoom_use_virtual,
+            kis_use_virtual=kis_use_virtual,
         ),
     )
     db.add(credential)

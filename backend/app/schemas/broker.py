@@ -37,6 +37,19 @@ class KiwoomServerIpResponse(CamelModel):
     instructions: str
 
 
+class KisConnectivityTarget(CamelModel):
+    environment: str
+    host: str
+    port: int
+    tcp_reachable: bool
+    error: str | None = None
+
+
+class KisConnectivityResponse(CamelModel):
+    items: list[KisConnectivityTarget]
+    instructions: str
+
+
 class AccountConnectRequest(CamelModel):
     name: str = Field(min_length=1, max_length=50)
     broker_code: str = Field(min_length=1, max_length=20)

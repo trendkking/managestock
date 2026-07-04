@@ -1,10 +1,19 @@
 from fastapi import APIRouter, Depends
 
 from app.brokers.kiwoom import fetch_server_public_ip
+from app.brokers.kis import kis_host_port, probe_kis_tcp
 from app.brokers.catalog import BROKER_CATALOG
 from app.dependencies import get_current_user
 from app.models import User
-from app.schemas.broker import BrokerFieldSchema, BrokerListResponse, BrokerOption, KiwoomServerIpResponse, SupportedMarketsSchema
+from app.schemas.broker import (
+    BrokerFieldSchema,
+    BrokerListResponse,
+    BrokerOption,
+    KisConnectivityResponse,
+    KisConnectivityTarget,
+    KiwoomServerIpResponse,
+    SupportedMarketsSchema,
+)
 
 router = APIRouter(prefix="/brokers", tags=["brokers"])
 
@@ -70,5 +79,30 @@ def kiwoom_server_ip(_: User = Depends(get_current_user)) -> KiwoomServerIpRespo
         instructions=(
             "키움 실전 API 연동 시 openapi.kiwoom.com → API 사용신청 → 계좌 App Key 관리에서 "
             "아래 공인 IP를 등록해주세요. (모의투자 키는 IP 등록이 필요 없습니다.)"
+        ),
+    )
+
+
+@router.get("/kis/connectivity", response_model=KisConnectivityResponse)
+def kis_connectivity(_: User = Depends(get_current_user)) -> KisConnectivityResponse:
+    items: list[KisConnectivityTarget] = []
+    for use_virtual, label in ((False, "실전투자"), (True, "모의투자(VTS)")):
+        host, port = kis_host_port(use_virtual)
+        ok, err = probe_kis_tcp(use_virtual)
+        items.append(
+            KisConnectivityTarget(
+                environment=label,
+                host=host,
+                port=port,
+                tcp_reachable=ok,
+                error=err,
+            )
+        )
+    return KisConnectivityResponse(
+        items=items,
+        instructions=(
+            "bullslong 서버에서 한국투자증권 API로 나가는 연결 상태입니다. "
+            "tcpReachable이 false이면 EC2 보안그룹 outbound 또는 증권사 방화벽 문제일 수 있습니다. "
+            "App Key가 모의투자용이면 모의투자(VTS) 환경이 연결되어야 합니다."
         ),
     )

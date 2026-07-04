@@ -144,4 +144,15 @@ if command -v curl >/dev/null 2>&1; then
   else
     echo "⚠️  public sitemap.xml check failed"
   fi
+  echo "==> verify KIS API TCP (from server)"
+  if python3 -c "import socket; s=socket.create_connection(('openapi.koreainvestment.com',9443),10); s.close()" 2>/dev/null; then
+    echo "✅ KIS 실전 9443 reachable"
+  else
+    echo "⚠️  KIS 실전 9443 NOT reachable — EC2 outbound/보안그룹 확인"
+  fi
+  if python3 -c "import socket; s=socket.create_connection(('openapivts.koreainvestment.com',29443),10); s.close()" 2>/dev/null; then
+    echo "✅ KIS 모의 29443 reachable"
+  else
+    echo "⚠️  KIS 모의 29443 NOT reachable"
+  fi
 fi
