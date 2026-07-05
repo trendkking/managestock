@@ -46,6 +46,22 @@ export function buildPlaceholderDailyPrices(stockCode: string, months = 6): Dail
   })
 }
 
+export function normalizeChartDate(date: string): string {
+  return date.trim().slice(0, 10)
+}
+
+/** journalDate → 차트에 실제 존재하는 캔들 날짜 (휴장일이면 직전 거래일) */
+export function resolvePriceDate(prices: DailyPricePoint[], date: string): string | null {
+  const target = normalizeChartDate(date)
+  if (!target || prices.length === 0) return null
+  const exact = prices.find((p) => p.date === target)
+  if (exact) return exact.date
+  for (let i = prices.length - 1; i >= 0; i -= 1) {
+    if (prices[i].date <= target) return prices[i].date
+  }
+  return prices[0]?.date ?? null
+}
+
 export function ohlcOnDate(
   prices: DailyPricePoint[],
   date: string,
@@ -57,22 +73,16 @@ export function ohlcOnDate(
     low: p.low ?? p.close,
   })
 
-  const exact = prices.find((p) => p.date === date)
-  if (exact) return pick(exact)
-  for (let i = prices.length - 1; i >= 0; i -= 1) {
-    if (prices[i].date <= date) return pick(prices[i])
-  }
-  const first = prices[0]
-  return first ? pick(first) : { open: 0, close: 0, high: 0, low: 0 }
+  const resolved = resolvePriceDate(prices, date)
+  if (!resolved) return { open: 0, close: 0, high: 0, low: 0 }
+  const row = prices.find((p) => p.date === resolved)
+  return row ? pick(row) : { open: 0, close: 0, high: 0, low: 0 }
 }
 
 export function priceOnDate(prices: DailyPricePoint[], date: string): number {
-  const exact = prices.find((p) => p.date === date)
-  if (exact) return exact.close
-  for (let i = prices.length - 1; i >= 0; i -= 1) {
-    if (prices[i].date <= date) return prices[i].close
-  }
-  return prices[0]?.close ?? 0
+  const resolved = resolvePriceDate(prices, date)
+  if (!resolved) return 0
+  return prices.find((p) => p.date === resolved)?.close ?? 0
 }
 
 export function formatChartAxisWon(value: number): string {

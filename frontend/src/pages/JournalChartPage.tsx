@@ -12,7 +12,7 @@ import { PageHeader } from '@/components/ui/Common'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
 import { DataTable, Td, Th } from '@/components/ui/StatCard'
-import { ohlcOnDate } from '@/lib/journalStockChart'
+import { ohlcOnDate, resolvePriceDate } from '@/lib/journalStockChart'
 import { useDataStore } from '@/stores/dataStore'
 import type { JournalEntry } from '@/types'
 import { formatCurrency, truncate } from '@/utils'
@@ -48,20 +48,24 @@ export default function JournalChartPage() {
 
   const markers = useMemo<JournalChartMarker[]>(
     () =>
-      entries.map((e) => {
+      entries.flatMap((e) => {
+        const chartDate = resolvePriceDate(chart.priceData, e.journalDate)
+        if (!chartDate) return []
         const ohlc = ohlcOnDate(chart.priceData, e.journalDate)
         const isBuy = e.side === 'buy'
-        return {
-          date: e.journalDate,
-          markerY: isBuy ? ohlc.low : ohlc.high,
-          side: e.side,
-          close: ohlc.close,
-          high: ohlc.high,
-          low: ohlc.low,
-          entryId: e.id,
-          reason: e.reason,
-          journalDate: e.journalDate,
-        }
+        return [
+          {
+            date: chartDate,
+            markerY: isBuy ? ohlc.low : ohlc.high,
+            side: e.side,
+            close: ohlc.close,
+            high: ohlc.high,
+            low: ohlc.low,
+            entryId: e.id,
+            reason: e.reason,
+            journalDate: e.journalDate,
+          },
+        ]
       }),
     [entries, chart.priceData],
   )

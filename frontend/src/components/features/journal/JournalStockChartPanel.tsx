@@ -24,6 +24,7 @@ import {
   MA_PERIODS,
   type MaPeriod,
   ohlcOnDate,
+  resolvePriceDate,
   priceFromPlotY,
   dateFromPlotX,
   plotXFromCandleIndex,
@@ -414,25 +415,32 @@ export function JournalStockChartView({
         : undefined
 
   const allMarkers = useMemo(() => {
-    const list = [...markers]
+    const visibleDates = new Set(visibleChartData.map((row) => row.date))
+    const list: JournalChartMarker[] = []
+    for (const marker of markers) {
+      if (visibleDates.has(marker.date)) list.push(marker)
+    }
     if (previewMarker && priceData.length > 0) {
-      const ohlc = ohlcOnDate(priceData, previewMarker.date)
-      const isBuy = previewMarker.side === 'buy'
-      list.push({
-        date: previewMarker.date,
-        markerY: isBuy ? ohlc.low : ohlc.high,
-        side: previewMarker.side,
-        close: ohlc.close,
-        high: ohlc.high,
-        low: ohlc.low,
-        entryId: -1,
-        reason: previewMarker.reason ?? '',
-        journalDate: previewMarker.date,
-        preview: true,
-      })
+      const chartDate = resolvePriceDate(priceData, previewMarker.date)
+      if (chartDate && visibleDates.has(chartDate)) {
+        const ohlc = ohlcOnDate(priceData, previewMarker.date)
+        const isBuy = previewMarker.side === 'buy'
+        list.push({
+          date: chartDate,
+          markerY: isBuy ? ohlc.low : ohlc.high,
+          side: previewMarker.side,
+          close: ohlc.close,
+          high: ohlc.high,
+          low: ohlc.low,
+          entryId: -1,
+          reason: previewMarker.reason ?? '',
+          journalDate: previewMarker.date,
+          preview: true,
+        })
+      }
     }
     return list
-  }, [markers, previewMarker, priceData])
+  }, [markers, previewMarker, priceData, visibleChartData])
 
   if (chartLoading) {
     return (
