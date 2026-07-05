@@ -139,6 +139,14 @@ if command -v curl >/dev/null 2>&1; then
   else
     echo "⚠️  backend /sitemap.xml not reachable (check bullslong-backend)"
   fi
+  memo_status=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8000/api/journal-rule-memo 2>/dev/null || echo "000")
+  if [ "${memo_status}" = "401" ] || [ "${memo_status}" = "403" ]; then
+    echo "✅ backend /api/journal-rule-memo route registered"
+  else
+    echo "❌ ERROR: /api/journal-rule-memo returned HTTP ${memo_status} (expected 401 without auth)"
+    echo "→ pm2/systemd 백엔드가 최신 코드로 재시작되지 않았을 수 있습니다."
+    exit 1
+  fi
   if curl -fsS -o /dev/null https://bullslong.com/sitemap.xml 2>/dev/null; then
     echo "✅ https://bullslong.com/sitemap.xml"
   else

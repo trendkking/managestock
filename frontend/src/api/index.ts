@@ -111,7 +111,7 @@ export const journalEntriesApi = {
 export const journalRuleMemoApi = {
   get: () => apiClient.get<JournalRuleMemo>('/journal-rule-memo').then((r) => r.data),
   save: (content: string) =>
-    apiClient.put<JournalRuleMemo>('/journal-rule-memo', { content }).then((r) => r.data),
+    apiClient.patch<JournalRuleMemo>('/journal-rule-memo', { content }).then((r) => r.data),
 }
 
 export const marketApi = {

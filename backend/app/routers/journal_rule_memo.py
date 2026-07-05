@@ -32,6 +32,7 @@ def get_journal_rule_memo(
 
 
 @router.put("", response_model=JournalRuleMemoResponse)
+@router.patch("", response_model=JournalRuleMemoResponse)
 def save_journal_rule_memo(
     body: JournalRuleMemoWriteRequest,
     user: User = Depends(get_current_user),

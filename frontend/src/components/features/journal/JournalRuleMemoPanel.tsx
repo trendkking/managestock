@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ChevronDown, ChevronUp, NotebookPen } from 'lucide-react'
+import { ChevronDown, ChevronUp, NotebookPen, RotateCcw } from 'lucide-react'
 import { journalRuleMemoApi } from '@/api'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -9,6 +9,7 @@ import { USE_MOCK } from '@/lib/env'
 import { cn } from '@/utils'
 
 const MOCK_STORAGE_KEY = 'bullslong:journal-rule-memo'
+const DRAFT_STORAGE_KEY = 'bullslong:journal-rule-memo-draft'
 
 const PLACEHOLDER = `예시)
 - 손절: -3% 이상이면 무조건 매도
@@ -32,6 +33,30 @@ function writeMockMemo(content: string) {
   return payload
 }
 
+function readDraft(): string | null {
+  try {
+    return localStorage.getItem(DRAFT_STORAGE_KEY)
+  } catch {
+    return null
+  }
+}
+
+function writeDraft(content: string) {
+  try {
+    localStorage.setItem(DRAFT_STORAGE_KEY, content)
+  } catch {
+    /* ignore */
+  }
+}
+
+function clearDraft() {
+  try {
+    localStorage.removeItem(DRAFT_STORAGE_KEY)
+  } catch {
+    /* ignore */
+  }
+}
+
 function formatSavedAt(iso: string | null): string | null {
   if (!iso) return null
   const d = new Date(iso)
@@ -45,6 +70,14 @@ function formatSavedAt(iso: string | null): string | null {
   })
 }
 
+function previewLines(text: string, maxLines = 4): string {
+  const lines = text.split('\n').filter((line) => line.trim())
+  if (lines.length === 0) return '저장된 원칙이 없습니다. 펼쳐서 작성해 보세요.'
+  const slice = lines.slice(0, maxLines)
+  if (lines.length > maxLines) slice.push('…')
+  return slice.join('\n')
+}
+
 export function JournalRuleMemoPanel({ className }: { className?: string }) {
   const [content, setContent] = useState('')
   const [savedContent, setSavedContent] = useState('')
@@ -52,27 +85,37 @@ export function JournalRuleMemoPanel({ className }: { className?: string }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [saveMessage, setSaveMessage] = useState('')
   const [collapsed, setCollapsed] = useState(false)
 
   const dirty = content !== savedContent
+  const hasSavedContent = savedContent.trim().length > 0
 
   const load = useCallback(async () => {
     setLoading(true)
     setError('')
+    setSaveMessage('')
     try {
       if (USE_MOCK) {
         const memo = readMockMemo()
         setContent(memo.content)
         setSavedContent(memo.content)
         setUpdatedAt(memo.updatedAt)
+        clearDraft()
         return
       }
       const memo = await journalRuleMemoApi.get()
       setContent(memo.content)
       setSavedContent(memo.content)
       setUpdatedAt(memo.updatedAt)
+      clearDraft()
     } catch (err) {
-      setError(getApiErrorMessage(err, '메모를 불러오지 못했습니다.'))
+      const draft = readDraft()
+      if (draft != null && draft.length > 0) {
+        setContent(draft)
+        setSavedContent('')
+      }
+      setError(getApiErrorMessage(err, '메모를 불러오지 못했습니다. 아래에서 다시 시도해 주세요.'))
     } finally {
       setLoading(false)
     }
@@ -82,19 +125,36 @@ export function JournalRuleMemoPanel({ className }: { className?: string }) {
     void load()
   }, [load])
 
+  useEffect(() => {
+    if (USE_MOCK || loading) return
+    if (dirty) writeDraft(content)
+  }, [content, dirty, loading])
+
+  useEffect(() => {
+    if (!saveMessage) return
+    const timer = window.setTimeout(() => setSaveMessage(''), 3000)
+    return () => window.clearTimeout(timer)
+  }, [saveMessage])
+
   const handleSave = async () => {
     setSaving(true)
     setError('')
+    setSaveMessage('')
     try {
       if (USE_MOCK) {
         const memo = writeMockMemo(content)
         setSavedContent(memo.content)
         setUpdatedAt(memo.updatedAt)
+        setSaveMessage('저장되었습니다.')
+        clearDraft()
         return
       }
       const memo = await journalRuleMemoApi.save(content)
+      setContent(memo.content)
       setSavedContent(memo.content)
       setUpdatedAt(memo.updatedAt)
+      setSaveMessage('저장되었습니다.')
+      clearDraft()
     } catch (err) {
       setError(getApiErrorMessage(err, '메모 저장에 실패했습니다.'))
     } finally {
@@ -130,29 +190,71 @@ export function JournalRuleMemoPanel({ className }: { className?: string }) {
         </div>
       </CardHeader>
 
-      {!collapsed && (
-        <CardContent className="space-y-3 pt-0">
-          <Textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder={PLACEHOLDER}
-            className="min-h-[140px] resize-y border-amber-100 bg-white/90 font-mono text-sm leading-relaxed"
-            disabled={loading}
-            maxLength={20000}
-          />
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-xs text-slate-500">
-              {loading
-                ? '불러오는 중...'
-                : savedLabel
-                  ? `마지막 저장 ${savedLabel}${dirty ? ' · 저장되지 않은 변경 있음' : ''}`
-                  : dirty
-                    ? '저장되지 않은 변경 있음'
-                    : '아직 저장된 내용이 없습니다'}
-            </p>
-            <Button type="button" size="sm" onClick={() => void handleSave()} disabled={loading || saving || !dirty}>
-              {saving ? '저장 중...' : '저장'}
+      {collapsed ? (
+        <CardContent className="space-y-2 pt-0">
+          <div className="rounded-lg border border-amber-100 bg-white/90 p-4">
+            <p className="mb-2 text-xs font-medium text-amber-800">저장된 내용</p>
+            <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-slate-800">
+              {loading ? '불러오는 중...' : previewLines(savedContent)}
+            </pre>
+          </div>
+          {savedLabel && (
+            <p className="text-xs text-slate-500">마지막 저장 {savedLabel}</p>
+          )}
+          <div className="flex justify-end">
+            <Button type="button" size="sm" variant="outline" onClick={() => setCollapsed(false)}>
+              수정하기
             </Button>
+          </div>
+        </CardContent>
+      ) : (
+        <CardContent className="space-y-3 pt-0">
+          {hasSavedContent && !dirty && !loading && (
+            <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 p-3">
+              <p className="mb-1 text-xs font-medium text-emerald-800">현재 저장된 원칙</p>
+              <pre className="max-h-32 overflow-y-auto whitespace-pre-wrap font-mono text-sm leading-relaxed text-slate-800">
+                {savedContent}
+              </pre>
+            </div>
+          )}
+
+          <div>
+            <p className="mb-1 text-xs font-medium text-slate-600">
+              {hasSavedContent ? '내용 수정' : '원칙 작성'}
+            </p>
+            <Textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder={PLACEHOLDER}
+              className="min-h-[140px] resize-y border-amber-100 bg-white/90 font-mono text-sm leading-relaxed"
+              disabled={loading}
+              maxLength={20000}
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="space-y-1">
+              <p className="text-xs text-slate-500">
+                {loading
+                  ? '불러오는 중...'
+                  : savedLabel
+                    ? `마지막 저장 ${savedLabel}${dirty ? ' · 저장되지 않은 변경 있음' : ''}`
+                    : dirty
+                      ? '저장되지 않은 변경 있음'
+                      : '아직 저장된 내용이 없습니다'}
+              </p>
+              {saveMessage && <p className="text-xs font-medium text-emerald-600">{saveMessage}</p>}
+            </div>
+            <div className="flex gap-2">
+              {error && (
+                <Button type="button" size="sm" variant="outline" onClick={() => void load()} disabled={loading}>
+                  <RotateCcw className="h-4 w-4" /> 다시 불러오기
+                </Button>
+              )}
+              <Button type="button" size="sm" onClick={() => void handleSave()} disabled={loading || saving || !dirty}>
+                {saving ? '저장 중...' : '저장'}
+              </Button>
+            </div>
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
         </CardContent>
