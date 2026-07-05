@@ -15,7 +15,7 @@ from app.brokers.sync_config import extra_json, parse_extra, parse_sync_config, 
 from app.config import settings
 from app.models import Account, AccountCredential
 from app.utils.crypto import decrypt_secret
-from app.utils.time import utc_now
+from app.utils.time import parse_kst_wallclock_to_utc_naive, utc_naive_to_kst_date, utc_now
 
 KIWOOM_SYNC_MEMO_PREFIX = sync_memo_prefix("kiwoom")
 KIWOOM_API_MIN_INTERVAL_SEC = 0.4
@@ -93,11 +93,7 @@ def _parse_trade_type(*texts: str) -> str | None:
 
 
 def _parse_trade_datetime(trde_dt: str, proc_tm: str | None = None) -> datetime:
-    d = str(trde_dt or "").strip()
-    if len(d) != 8 or not d.isdigit():
-        return utc_now()
-    raw_t = "".join(ch for ch in str(proc_tm or "120000") if ch.isdigit()).zfill(6)[:6]
-    return datetime.strptime(f"{d}{raw_t}", "%Y%m%d%H%M%S")
+    return parse_kst_wallclock_to_utc_naive(trde_dt, proc_tm)
 
 
 def parse_kt00015_trade_row(item: dict) -> BrokerTrade | None:
@@ -460,7 +456,7 @@ class KiwoomBrokerAdapter:
                     parsed = parse_kt00015_trade_row(item)
                     if parsed is None or parsed.external_id in seen:
                         continue
-                    if not (start <= parsed.traded_at.date() <= end):
+                    if not (start <= utc_naive_to_kst_date(parsed.traded_at) <= end):
                         continue
                     seen.add(parsed.external_id)
                     trades.append(parsed)

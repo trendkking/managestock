@@ -11,6 +11,9 @@ from app.brokers.kis import (
 )
 
 
+from app.utils.time import utc_naive_to_kst_date
+
+
 def test_parse_domestic_ccld_row_sell():
     row = {
         "cncl_yn": "N",
@@ -32,7 +35,26 @@ def test_parse_domestic_ccld_row_sell():
     assert trade.stock_code == "005930"
     assert trade.quantity == 10
     assert trade.realized_pnl == Decimal("-197200")
-    assert trade.traded_at.strftime("%Y%m%d") == "20250331"
+    assert utc_naive_to_kst_date(trade.traded_at).strftime("%Y%m%d") == "20250331"
+
+
+def test_parse_domestic_ccld_row_afternoon_kst_stays_same_calendar_day():
+    """장 마감 전 매도(15:30 KST)가 다음날로 밀리지 않아야 함."""
+    row = {
+        "cncl_yn": "N",
+        "sll_buy_dvsn_cd": "01",
+        "pdno": "252670",
+        "prdt_name": "KODEX 200선물인버스2X",
+        "tot_ccld_qty": "100",
+        "avg_prvs": "1000",
+        "ord_dt": "20260703",
+        "ord_tmd": "153000",
+        "odno": "999",
+    }
+    trade = parse_domestic_ccld_row(row)
+    assert trade is not None
+    assert utc_naive_to_kst_date(trade.traded_at).isoformat() == "2026-07-03"
+    assert trade.traded_at.isoformat() == "2026-07-03T06:30:00"
 
 
 def test_parse_domestic_ccld_row_sell_evlu_pfls_amt2():

@@ -13,7 +13,7 @@ from app.models import Account, AccountCredential, Holding, Trade
 from app.services.calculations import account_stats, holdings_unrealized_pnl_krw
 from app.services.snapshot_service import upsert_account_snapshot
 from app.utils.crypto import decrypt_secret, encrypt_secret
-from app.utils.time import utc_now
+from app.utils.time import kst_date_end_exclusive_utc_naive, kst_date_start_utc_naive, utc_naive_to_kst_date, utc_now
 
 
 def build_kis_credentials(credential: AccountCredential, account: Account) -> KISCredentials:
@@ -112,7 +112,8 @@ def _parse_iso_date(value: str) -> date:
 
 
 def _trade_in_date_range(traded_at: datetime, from_date: date, to_date: date) -> bool:
-    return from_date <= traded_at.date() <= to_date
+    d = utc_naive_to_kst_date(traded_at)
+    return from_date <= d <= to_date
 
 
 def _dedupe_sync_trades_by_memo(db: Session, account: Account) -> int:
@@ -229,8 +230,8 @@ def import_domestic_trades_range(
             select(Trade)
             .where(
                 Trade.account_id == account.id,
-                Trade.traded_at >= datetime.combine(from_date, datetime.min.time()),
-                Trade.traded_at < datetime.combine(to_date + timedelta(days=1), datetime.min.time()),
+                Trade.traded_at >= kst_date_start_utc_naive(from_date),
+                Trade.traded_at < kst_date_end_exclusive_utc_naive(to_date),
             )
             .order_by(Trade.traded_at.asc())
         ).all()

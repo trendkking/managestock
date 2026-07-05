@@ -11,7 +11,7 @@ from app.brokers.base import BrokerBalance, BrokerError, BrokerHolding, BrokerTr
 from app.config import settings
 from app.models import Account, AccountCredential
 from app.utils.crypto import decrypt_secret
-from app.utils.time import utc_now
+from app.utils.time import parse_kst_wallclock_to_utc_naive, utc_now
 
 US_EXCHANGE_CODES = frozenset({"NASD", "NYSE", "AMEX"})
 US_EXCHANGE_LABELS = {
@@ -139,11 +139,7 @@ def _int_qty(value) -> int:
 
 
 def _parse_kis_trade_datetime(ord_dt: str, ord_tmd: str | None = None) -> datetime:
-    d = str(ord_dt or "").strip()
-    if len(d) != 8 or not d.isdigit():
-        return utc_now()
-    raw_t = "".join(ch for ch in str(ord_tmd or "120000") if ch.isdigit()).zfill(6)[:6]
-    return datetime.strptime(f"{d}{raw_t}", "%Y%m%d%H%M%S")
+    return parse_kst_wallclock_to_utc_naive(ord_dt, ord_tmd)
 
 
 def _first_decimal(item: dict, keys: tuple[str, ...]) -> Decimal | None:

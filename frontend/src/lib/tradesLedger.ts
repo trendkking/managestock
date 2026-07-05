@@ -1,6 +1,8 @@
 import { format, subMonths, subYears } from 'date-fns'
 import type { Trade } from '@/types'
 
+const kstDateFormatter = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' })
+
 export type TradePeriodPreset = 'all' | '1m' | '3m' | '1y' | 'custom'
 
 export interface TradeDateRange {
@@ -24,7 +26,7 @@ export function tradeSide(trade: Trade): string {
 }
 
 export function tradeDateOnly(tradedAt: string): string {
-  return format(new Date(tradedAt), 'yyyy-MM-dd')
+  return kstDateFormatter.format(new Date(tradedAt))
 }
 
 export function isTradeInRange(tradedAt: string, range?: TradeDateRange): boolean {
@@ -108,7 +110,7 @@ export function buildTradesLedger(trades: Trade[], range?: TradeDateRange): Trad
     if (sellPnl != null) cumulative += sellPnl
     rows.push({
       no: index + 1,
-      date: format(new Date(t.tradedAt), 'yyyy-MM-dd'),
+      date: tradeDateOnly(t.tradedAt),
       stockName: t.stockName,
       sellPnl,
       cumulativePnl: cumulative,
@@ -157,7 +159,7 @@ export function buildTradePnlChartPoints(trades: Trade[], range?: TradeDateRange
       xKey: `trade-${t.id}`,
       label: stockChartLabel(t.stockName, index, stockNames),
       stockName: t.stockName,
-      date: format(new Date(t.tradedAt), 'yyyy-MM-dd'),
+      date: tradeDateOnly(t.tradedAt),
       tradePnl: sellPnl ?? 0,
       tradePnlKnown: sellPnl != null,
       cumulativePnl: cumulative,
