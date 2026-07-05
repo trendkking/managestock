@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Plus } from 'lucide-react'
+import { ArrowLeft, Pencil, Plus } from 'lucide-react'
+import { JournalEntryFormDialog } from '@/components/features/journal/JournalEntryFormDialog'
 import {
   JournalMaControls,
   JournalSrLinesControls,
@@ -38,6 +39,7 @@ export default function JournalChartPage() {
   const [selectedId, setSelectedId] = useState<number | null>(
     entryParam ? Number(entryParam) : entries[0]?.id ?? null,
   )
+  const [editOpen, setEditOpen] = useState(false)
 
   const stockName = chart.chartMeta?.stockName ?? entries[0]?.stockName ?? stockCode
   const region = chart.region
@@ -129,11 +131,16 @@ export default function JournalChartPage() {
               <h3 className="text-sm font-semibold text-slate-500">선택한 기록</h3>
               {selectedEntry ? (
                 <div className="mt-3 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <p className="text-lg font-bold text-slate-900">{selectedEntry.journalDate}</p>
-                    <Badge variant={selectedEntry.side === 'buy' ? 'success' : 'danger'}>
-                      {selectedEntry.side === 'buy' ? '매수' : '매도'}
-                    </Badge>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <p className="text-lg font-bold text-slate-900">{selectedEntry.journalDate}</p>
+                      <Badge variant={selectedEntry.side === 'buy' ? 'success' : 'danger'}>
+                        {selectedEntry.side === 'buy' ? '매수' : '매도'}
+                      </Badge>
+                    </div>
+                    <Button type="button" variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                      <Pencil className="h-4 w-4" /> 수정
+                    </Button>
                   </div>
                   <p className="text-sm text-slate-600">{selectedEntry.stockName}</p>
                   <div className="rounded-lg border border-red-100 bg-primary-subtle/60 p-4 text-sm leading-relaxed text-slate-800">
@@ -197,6 +204,20 @@ export default function JournalChartPage() {
           </p>
         )
       })()}
+
+      <JournalEntryFormDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        entry={selectedEntry ?? null}
+        onSaved={(entry) => {
+          if (entry.stockCode !== stockCode) {
+            navigate(`/journal/chart/${encodeURIComponent(entry.stockCode)}?entry=${entry.id}`)
+            return
+          }
+          setSelectedId(entry.id)
+          setSearchParams({ entry: String(entry.id) })
+        }}
+      />
     </div>
   )
 }
