@@ -70,14 +70,6 @@ function formatSavedAt(iso: string | null): string | null {
   })
 }
 
-function previewLines(text: string, maxLines = 4): string {
-  const lines = text.split('\n').filter((line) => line.trim())
-  if (lines.length === 0) return '저장된 원칙이 없습니다. 펼쳐서 작성해 보세요.'
-  const slice = lines.slice(0, maxLines)
-  if (lines.length > maxLines) slice.push('…')
-  return slice.join('\n')
-}
-
 export function JournalRuleMemoPanel({ className }: { className?: string }) {
   const [content, setContent] = useState('')
   const [savedContent, setSavedContent] = useState('')
@@ -89,7 +81,6 @@ export function JournalRuleMemoPanel({ className }: { className?: string }) {
   const [collapsed, setCollapsed] = useState(false)
 
   const dirty = content !== savedContent
-  const hasSavedContent = savedContent.trim().length > 0
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -143,6 +134,7 @@ export function JournalRuleMemoPanel({ className }: { className?: string }) {
     try {
       if (USE_MOCK) {
         const memo = writeMockMemo(content)
+        setContent(memo.content)
         setSavedContent(memo.content)
         setUpdatedAt(memo.updatedAt)
         setSaveMessage('저장되었습니다.')
@@ -190,47 +182,16 @@ export function JournalRuleMemoPanel({ className }: { className?: string }) {
         </div>
       </CardHeader>
 
-      {collapsed ? (
-        <CardContent className="space-y-2 pt-0">
-          <div className="rounded-lg border border-amber-100 bg-white/90 p-4">
-            <p className="mb-2 text-xs font-medium text-amber-800">저장된 내용</p>
-            <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-slate-800">
-              {loading ? '불러오는 중...' : previewLines(savedContent)}
-            </pre>
-          </div>
-          {savedLabel && (
-            <p className="text-xs text-slate-500">마지막 저장 {savedLabel}</p>
-          )}
-          <div className="flex justify-end">
-            <Button type="button" size="sm" variant="outline" onClick={() => setCollapsed(false)}>
-              수정하기
-            </Button>
-          </div>
-        </CardContent>
-      ) : (
+      {!collapsed && (
         <CardContent className="space-y-3 pt-0">
-          {hasSavedContent && !dirty && !loading && (
-            <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 p-3">
-              <p className="mb-1 text-xs font-medium text-emerald-800">현재 저장된 원칙</p>
-              <pre className="max-h-32 overflow-y-auto whitespace-pre-wrap font-mono text-sm leading-relaxed text-slate-800">
-                {savedContent}
-              </pre>
-            </div>
-          )}
-
-          <div>
-            <p className="mb-1 text-xs font-medium text-slate-600">
-              {hasSavedContent ? '내용 수정' : '원칙 작성'}
-            </p>
-            <Textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder={PLACEHOLDER}
-              className="min-h-[140px] resize-y border-amber-100 bg-white/90 font-mono text-sm leading-relaxed"
-              disabled={loading}
-              maxLength={20000}
-            />
-          </div>
+          <Textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder={PLACEHOLDER}
+            className="min-h-[160px] resize-y border-amber-100 bg-white/90 font-mono text-sm leading-relaxed"
+            disabled={loading}
+            maxLength={20000}
+          />
 
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="space-y-1">
