@@ -10,6 +10,7 @@ import type {
   Holding,
   Journal,
   JournalEntry,
+  JournalRuleMemo,
   LeaderboardEntry,
   PerformancePoint,
   StockSearchResult,
@@ -105,6 +106,12 @@ export const journalEntriesApi = {
   update: (id: number, body: Omit<JournalEntry, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) =>
     apiClient.patch<JournalEntry>(`/journal-entries/${id}`, body).then((r) => r.data),
   delete: (id: number) => apiClient.delete(`/journal-entries/${id}`),
+}
+
+export const journalRuleMemoApi = {
+  get: () => apiClient.get<JournalRuleMemo>('/journal-rule-memo').then((r) => r.data),
+  save: (content: string) =>
+    apiClient.put<JournalRuleMemo>('/journal-rule-memo', { content }).then((r) => r.data),
 }
 
 export const marketApi = {

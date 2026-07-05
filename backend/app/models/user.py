@@ -25,6 +25,9 @@ class User(Base):
     journal_entries: Mapped[list["JournalEntry"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
+    journal_rule_memo: Mapped["JournalRuleMemo | None"] = relationship(
+        back_populates="user", cascade="all, delete-orphan", uselist=False
+    )
     competition_entries: Mapped[list["CompetitionEntry"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )

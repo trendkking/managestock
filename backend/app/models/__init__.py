@@ -4,6 +4,7 @@ from app.models.account_credential import AccountCredential
 from app.models.competition import Competition, CompetitionEntry, CompetitionSnapshot
 from app.models.journal import Journal, JournalStock, JournalTag, JournalTrade
 from app.models.journal_entry import JournalEntry
+from app.models.journal_rule_memo import JournalRuleMemo
 from app.models.user import User
 
 __all__ = [
@@ -19,6 +20,7 @@ __all__ = [
     "JournalStock",
     "JournalTrade",
     "JournalEntry",
+    "JournalRuleMemo",
     "Competition",
     "CompetitionEntry",
     "CompetitionSnapshot",

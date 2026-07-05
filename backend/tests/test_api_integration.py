@@ -222,6 +222,25 @@ def test_journal_entries_crud(client: TestClient, auth_headers: dict):
     assert r.status_code == 204
 
 
+def test_journal_rule_memo_get_and_save(client: TestClient, auth_headers: dict):
+    r = client.get("/api/journal-rule-memo", headers=auth_headers)
+    assert r.status_code == 200
+    assert r.json()["content"] == ""
+
+    r = client.put(
+        "/api/journal-rule-memo",
+        headers=auth_headers,
+        json={"content": "- 손절 -3%\n- 추격 매수 금지"},
+    )
+    assert r.status_code == 200
+    assert "손절" in r.json()["content"]
+    assert r.json()["updatedAt"]
+
+    r = client.get("/api/journal-rule-memo", headers=auth_headers)
+    assert r.status_code == 200
+    assert r.json()["content"] == "- 손절 -3%\n- 추격 매수 금지"
+
+
 def test_market_stock_search_and_daily(client: TestClient, auth_headers: dict, monkeypatch):
     from app.services.market_data_service import StockItem
 

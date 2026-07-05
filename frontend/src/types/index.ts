@@ -171,6 +171,11 @@ export interface JournalEntry {
   updatedAt: string
 }
 
+export interface JournalRuleMemo {
+  content: string
+  updatedAt: string
+}
+
 export interface StockSearchResult {
   code: string
   name: string

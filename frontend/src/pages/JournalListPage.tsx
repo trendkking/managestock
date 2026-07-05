@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LineChart, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { JournalEntryFormDialog } from '@/components/features/journal/JournalEntryFormDialog'
+import { JournalRuleMemoPanel } from '@/components/features/journal/JournalRuleMemoPanel'
 import { PageHeader, EmptyState } from '@/components/ui/Common'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -62,6 +63,8 @@ export default function JournalListPage() {
           </Button>
         }
       />
+
+      <JournalRuleMemoPanel className="mb-6" />
 
       <div className="mb-4 relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
