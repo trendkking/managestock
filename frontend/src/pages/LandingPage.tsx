@@ -71,7 +71,7 @@ export default function LandingPage() {
               <Link to="/register"><Button size="lg">무료로 시작하기 <ArrowRight className="h-4 w-4" /></Button></Link>
               <Link to="/demo">
                 <Button size="lg" variant="outline">
-                  기능 체험하기
+                  체험하기
                 </Button>
               </Link>
             </>
