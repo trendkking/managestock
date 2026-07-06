@@ -91,7 +91,7 @@ export function formatChartAxisWon(value: number): string {
 
 export const MA_PERIODS = [5, 20, 40, 60, 120] as const
 
-export const CHART_FETCH_MONTHS = 3
+export const CHART_FETCH_MONTHS = 6
 export const CHART_INITIAL_VISIBLE_BARS = 63
 export const CHART_MIN_VISIBLE_BARS = 20
 
