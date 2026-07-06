@@ -5,6 +5,7 @@ import {
   appendMovingAverages,
   buildPlaceholderDailyPrices,
   CHART_FETCH_MONTHS,
+  CHART_INITIAL_VISIBLE_BARS,
   clampChart,
   initialChartViewport,
   panChartViewport,
@@ -34,7 +35,10 @@ export function useJournalStockChart(stockCode: string) {
   const [visibleMa, setVisibleMa] = useState<Set<MaPeriod>>(() => new Set(MA_PERIODS))
   const [srLines, setSrLines] = useState<SrLine[]>([])
   const [srDrawKind, setSrDrawKind] = useState<SrLineKind | null>(null)
-  const [viewport, setViewport] = useState<ChartViewport>({ start: 0, count: 63 })
+  const [viewport, setViewport] = useState<ChartViewport>({
+    start: 0,
+    count: CHART_INITIAL_VISIBLE_BARS,
+  })
 
   const apiPriceData = useMemo(
     () =>
@@ -67,7 +71,7 @@ export function useJournalStockChart(stockCode: string) {
       setUsingFallback(false)
       setFallbackPriceData([])
       setSrLines([])
-      setViewport({ start: 0, count: 63 })
+      setViewport({ start: 0, count: CHART_INITIAL_VISIBLE_BARS })
       return
     }
     setSrLines(loadSrLines(stockCode))
@@ -86,7 +90,7 @@ export function useJournalStockChart(stockCode: string) {
 
   useEffect(() => {
     if (priceData.length === 0) {
-      setViewport({ start: 0, count: 63 })
+      setViewport({ start: 0, count: CHART_INITIAL_VISIBLE_BARS })
       return
     }
     setViewport(initialChartViewport(priceData.length))

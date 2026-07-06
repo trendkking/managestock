@@ -17,7 +17,10 @@ function hashSeed(value: string): number {
 }
 
 /** 실제 시세 연동 전 — 종목별 참고용 일봉 곡선 */
-export function buildPlaceholderDailyPrices(stockCode: string, months = 6): DailyPricePoint[] {
+export function buildPlaceholderDailyPrices(
+  stockCode: string,
+  months = CHART_FETCH_MONTHS,
+): DailyPricePoint[] {
   const end = new Date()
   const start = subMonths(end, months)
   const days = eachDayOfInterval({ start, end }).filter((d) => !isWeekend(d))
@@ -91,8 +94,12 @@ export function formatChartAxisWon(value: number): string {
 
 export const MA_PERIODS = [5, 20, 40, 60, 120] as const
 
-export const CHART_FETCH_MONTHS = 6
-export const CHART_INITIAL_VISIBLE_BARS = 63
+/** 차트에 기본으로 보여 줄 구간(약 6개월 거래일) */
+export const CHART_VISIBLE_MONTHS = 6
+export const CHART_INITIAL_VISIBLE_BARS = 126
+
+/** 120일선 등 장기 이평 — 화면 구간 + 120거래일 이전 데이터까지 조회 */
+export const CHART_FETCH_MONTHS = 12
 export const CHART_MIN_VISIBLE_BARS = 20
 
 export type ChartViewport = { start: number; count: number }
