@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { PageHeader } from '@/components/ui/Common'
+import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
 import { ReturnRateBadge, Badge } from '@/components/ui/Badge'
 import { AccountTitleWithFlags } from '@/components/features/accounts/AccountMarketFlags'
@@ -61,9 +62,9 @@ export default function DemoAccountsPage() {
               </div>
               <Link
                 to={`/demo/accounts/${account.id}`}
-                className="mt-4 inline-block text-sm font-medium text-primary hover:underline"
+                className="mt-4 block"
               >
-                상세 보기 →
+                <Button variant="outline" className="w-full" size="sm">상세 보기</Button>
               </Link>
             </CardContent>
           </Card>

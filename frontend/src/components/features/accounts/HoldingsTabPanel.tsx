@@ -87,7 +87,16 @@ export function HoldingsTabPanel({
             {account.holdings.length === 0 ? (
               <tr>
                 <td colSpan={11} className="px-4 py-8 text-center text-sm text-slate-500">
-                  보유 종목이 없습니다.
+                  {isApiAccount ? (
+                    <>
+                      보유 종목이 없습니다.
+                      <span className="mt-2 block text-slate-400">
+                        API 연동 계좌는 상단 「API 동기화」를 눌러 잔고·보유종목을 불러오세요.
+                      </span>
+                    </>
+                  ) : (
+                    '보유 종목이 없습니다.'
+                  )}
                 </td>
               </tr>
             ) : (
