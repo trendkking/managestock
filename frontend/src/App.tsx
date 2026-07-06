@@ -22,6 +22,14 @@ import AdminLoginPage from '@/pages/admin/AdminLoginPage'
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage'
 import AdminUsersPage from '@/pages/admin/AdminUsersPage'
 import AdminJournalsPage from '@/pages/admin/AdminJournalsPage'
+import { DemoLayout } from '@/demo/DemoLayout'
+import DemoHomePage from '@/pages/demo/DemoHomePage'
+import DemoAccountsPage from '@/pages/demo/DemoAccountsPage'
+import DemoAccountDetailPage from '@/pages/demo/DemoAccountDetailPage'
+import DemoJournalPage from '@/pages/demo/DemoJournalPage'
+import DemoJournalChartPage from '@/pages/demo/DemoJournalChartPage'
+import DemoCompetitionsPage from '@/pages/demo/DemoCompetitionsPage'
+import DemoCompetitionDetailPage from '@/pages/demo/DemoCompetitionDetailPage'
 import AdminCompetitionsPage from '@/pages/admin/AdminCompetitionsPage'
 
 const queryClient = new QueryClient({
@@ -41,6 +49,16 @@ export default function App() {
         <PwaInstallPrompt />
         <Routes>
           <Route path="/" element={<LandingPage />} />
+
+          <Route path="/demo" element={<DemoLayout />}>
+            <Route index element={<DemoHomePage />} />
+            <Route path="accounts" element={<DemoAccountsPage />} />
+            <Route path="accounts/:id" element={<DemoAccountDetailPage />} />
+            <Route path="journal" element={<DemoJournalPage />} />
+            <Route path="journal/chart/:stockCode" element={<DemoJournalChartPage />} />
+            <Route path="competitions" element={<DemoCompetitionsPage />} />
+            <Route path="competitions/:id" element={<DemoCompetitionDetailPage />} />
+          </Route>
 
           <Route element={<GuestRoute />}>
             <Route path="/login" element={<LoginPage />} />

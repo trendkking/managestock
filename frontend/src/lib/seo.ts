@@ -27,6 +27,7 @@ export interface SitemapEntry {
 /** 검색엔진에 노출할 공개 페이지 */
 export const SITEMAP_ENTRIES: SitemapEntry[] = [
   { path: '/', changefreq: 'weekly', priority: 1.0 },
+  { path: '/demo', changefreq: 'weekly', priority: 0.9 },
   { path: '/register', changefreq: 'monthly', priority: 0.8 },
   { path: '/login', changefreq: 'monthly', priority: 0.5 },
 ]
@@ -60,6 +61,14 @@ export function resolveSeoMeta(pathname: string): SeoMeta {
           'BULLSLONG 무료 회원가입. 주식 계좌 관리와 매매일지 공유 서비스를 시작하세요.',
         keywords: '주식, 주식계좌, 매매일지, 회원가입',
         canonicalPath: '/register',
+      }
+    case '/demo':
+      return {
+        title: `기능 체험 | ${SITE_NAME}`,
+        description:
+          '로그인 없이 BULLSLONG 계좌 관리, 매매일지, 경연 대회를 샘플 데이터로 체험해 보세요.',
+        keywords: '주식, 매매일지, 계좌관리, 체험, 데모',
+        canonicalPath: '/demo',
       }
     case '/accounts':
       return {
@@ -120,6 +129,13 @@ export function resolveSeoMeta(pathname: string): SeoMeta {
       break
   }
 
+  if (pathname.startsWith('/demo/')) {
+    return {
+      title: `기능 체험 | ${SITE_NAME}`,
+      description: 'BULLSLONG 샘플 데이터로 주요 기능을 체험합니다.',
+      canonicalPath: '/demo',
+    }
+  }
   if (pathname.startsWith('/accounts/')) {
     return {
       title: `계좌 상세 | ${SITE_NAME}`,

@@ -9,7 +9,6 @@ export default function LandingPage() {
   const navigate = useNavigate()
   const isAuth = useIsAuthenticated()
   const user = useCurrentUser()
-  const loginDemo = useAuthStore((s) => s.loginDemo)
   const logout = useAuthStore((s) => s.logout)
 
   return (
@@ -70,13 +69,11 @@ export default function LandingPage() {
           ) : (
             <>
               <Link to="/register"><Button size="lg">무료로 시작하기 <ArrowRight className="h-4 w-4" /></Button></Link>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={async () => { await loginDemo(); navigate('/accounts') }}
-              >
-                데모로 둘러보기
-              </Button>
+              <Link to="/demo">
+                <Button size="lg" variant="outline">
+                  기능 체험하기
+                </Button>
+              </Link>
             </>
           )}
         </div>
@@ -88,7 +85,7 @@ export default function LandingPage() {
           { icon: BookOpen, title: '매매일지', desc: '매매 근거와 반성을 기록해 투자 실력을 키웁니다.', to: '/journal' },
           { icon: Trophy, title: '경연 대회', desc: '평가금액(보유손익+매매손익)으로 순위를 겨룹니다.', to: '/competitions' },
         ].map(({ icon: Icon, title, desc, to }) => (
-          <Link key={title} to={isAuth ? to : '/login'}>
+          <Link key={title} to={isAuth ? to : `/demo${to}`}>
             <Card className="h-full border-red-100 transition-all hover:border-red-200 hover:shadow-md hover:shadow-red-100/50">
               <CardContent className="pt-6">
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary-muted">

@@ -1,9 +1,7 @@
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, status
 
-from app.dependencies import get_current_user
-from app.models import User
 from app.schemas.market import (
     DailyPricePoint,
     StockDailyChartResponse,
@@ -19,7 +17,6 @@ router = APIRouter(prefix="/market", tags=["market"])
 def search_stocks(
     q: str = Query(..., min_length=1, max_length=50),
     limit: int = Query(20, ge=1, le=50),
-    _: User = Depends(get_current_user),
 ) -> StockSearchResponse:
     try:
         items = market.search_stocks(q, limit=limit)
@@ -42,7 +39,6 @@ def get_stock_daily_chart(
     from_date: date | None = Query(None, alias="fromDate"),
     to_date: date | None = Query(None, alias="toDate"),
     months: int = Query(3, ge=1, le=24),
-    _: User = Depends(get_current_user),
 ) -> StockDailyChartResponse:
     resolved = market.resolve_stock(stock_code)
     if resolved is None:

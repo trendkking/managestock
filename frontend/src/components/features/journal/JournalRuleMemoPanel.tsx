@@ -17,9 +17,9 @@ const PLACEHOLDER = `예시)
 - 하루 최대 2종목까지만 매매
 - 뉴스/테마주는 소액만, 장기 투자와 단타 구분`
 
-function readMockMemo(): { content: string; updatedAt: string } {
+function readLocalMemo(key: string): { content: string; updatedAt: string } {
   try {
-    const raw = localStorage.getItem(MOCK_STORAGE_KEY)
+    const raw = localStorage.getItem(key)
     if (raw) return JSON.parse(raw) as { content: string; updatedAt: string }
   } catch {
     /* ignore */
@@ -27,9 +27,9 @@ function readMockMemo(): { content: string; updatedAt: string } {
   return { content: '', updatedAt: new Date().toISOString() }
 }
 
-function writeMockMemo(content: string) {
+function writeLocalMemo(key: string, content: string) {
   const payload = { content, updatedAt: new Date().toISOString() }
-  localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(payload))
+  localStorage.setItem(key, JSON.stringify(payload))
   return payload
 }
 
@@ -70,7 +70,16 @@ function formatSavedAt(iso: string | null): string | null {
   })
 }
 
-export function JournalRuleMemoPanel({ className }: { className?: string }) {
+export function JournalRuleMemoPanel({
+  className,
+  localOnly = false,
+  storageKey = MOCK_STORAGE_KEY,
+}: {
+  className?: string
+  /** true면 API 없이 브라우저 localStorage만 사용 (체험 모드) */
+  localOnly?: boolean
+  storageKey?: string
+}) {
   const [content, setContent] = useState('')
   const [savedContent, setSavedContent] = useState('')
   const [updatedAt, setUpdatedAt] = useState<string | null>(null)
@@ -87,8 +96,8 @@ export function JournalRuleMemoPanel({ className }: { className?: string }) {
     setError('')
     setSaveMessage('')
     try {
-      if (USE_MOCK) {
-        const memo = readMockMemo()
+      if (USE_MOCK || localOnly) {
+        const memo = readLocalMemo(localOnly ? storageKey : MOCK_STORAGE_KEY)
         setContent(memo.content)
         setSavedContent(memo.content)
         setUpdatedAt(memo.updatedAt)
@@ -110,16 +119,19 @@ export function JournalRuleMemoPanel({ className }: { className?: string }) {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [localOnly, storageKey])
+
+  const useLocalPersistence = USE_MOCK || localOnly
+  const memoStorageKey = localOnly ? storageKey : MOCK_STORAGE_KEY
 
   useEffect(() => {
     void load()
   }, [load])
 
   useEffect(() => {
-    if (USE_MOCK || loading) return
+    if (!useLocalPersistence || loading) return
     if (dirty) writeDraft(content)
-  }, [content, dirty, loading])
+  }, [content, dirty, loading, useLocalPersistence])
 
   useEffect(() => {
     if (!saveMessage) return
@@ -132,12 +144,12 @@ export function JournalRuleMemoPanel({ className }: { className?: string }) {
     setError('')
     setSaveMessage('')
     try {
-      if (USE_MOCK) {
-        const memo = writeMockMemo(content)
+      if (useLocalPersistence) {
+        const memo = writeLocalMemo(memoStorageKey, content)
         setContent(memo.content)
         setSavedContent(memo.content)
         setUpdatedAt(memo.updatedAt)
-        setSaveMessage('저장되었습니다.')
+        setSaveMessage(localOnly ? '저장되었습니다. (이 기기에만 보관)' : '저장되었습니다.')
         clearDraft()
         return
       }
