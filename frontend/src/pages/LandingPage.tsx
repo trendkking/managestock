@@ -49,7 +49,7 @@ export default function LandingPage() {
           <img src={LOGO_SRC} alt="BULLSLONG 황소" className="h-28 w-auto drop-shadow-lg md:h-36" />
         </div>
         <h1 className="text-4xl font-bold tracking-tight text-slate-900 md:text-5xl">
-          주식 계좌 관리 · 매매일지 ·<br />
+          계좌 관리 · 매매일지 ·<br />
           <span className="bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
             수익률 경연 대회
           </span>
