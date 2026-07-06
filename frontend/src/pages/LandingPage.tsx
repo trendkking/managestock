@@ -57,7 +57,7 @@ export default function LandingPage() {
         <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600">
           {isAuth
             ? `${user?.nickname}님, BULLSLONG에 로그인되었습니다. 아래 메뉴에서 원하는 기능을 선택하세요.`
-            : '간단하게 API 등록만으로 계좌를 관리하고, 매매일지를 작성하며, 다른 투자자와 수익률을 겨루세요.'}
+            : '증권사 API만 연결하세요. 계좌 관리, 매매일지, 수익률 대결이 자동으로 시작됩니다.'}
         </p>
         <div className="mt-10 flex flex-wrap justify-center gap-4">
           {isAuth ? (
