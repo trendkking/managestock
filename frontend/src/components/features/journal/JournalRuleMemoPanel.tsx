@@ -188,7 +188,7 @@ export function JournalRuleMemoPanel({ className }: { className?: string }) {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder={PLACEHOLDER}
-            className="min-h-[160px] resize-y border-amber-100 bg-white/90 font-mono text-sm leading-relaxed"
+            className="min-h-[160px] resize-y border-amber-100 bg-white/90 text-sm leading-relaxed text-slate-700"
             disabled={loading}
             maxLength={20000}
           />
