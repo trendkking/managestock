@@ -23,7 +23,7 @@ function useMobileChartHeight() {
   const [height, setHeight] = useState(380)
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 639px)')
-    const apply = () => setHeight(mq.matches ? 300 : 380)
+    const apply = () => setHeight(mq.matches ? 400 : 380)
     apply()
     mq.addEventListener('change', apply)
     return () => mq.removeEventListener('change', apply)
@@ -120,10 +120,12 @@ export default function JournalChartPage() {
       />
 
       <div className="grid gap-4 lg:grid-cols-3 lg:gap-6">
-        <div className="min-w-0 lg:col-span-2">
-          <Card>
-            <CardContent className="pt-6">
-              <JournalMaControls visibleMa={chart.visibleMa} toggleMa={chart.toggleMa} className="mb-4" />
+        <div className="min-w-0 -mx-4 w-[calc(100%+2rem)] md:-mx-6 md:w-[calc(100%+3rem)] lg:col-span-2">
+          <Card className="overflow-hidden rounded-none border-x-0 shadow-none sm:rounded-xl sm:border sm:shadow-sm">
+            <CardContent className="p-0 pt-4 sm:pt-6">
+              <div className="px-4 md:px-6">
+                <JournalMaControls visibleMa={chart.visibleMa} toggleMa={chart.toggleMa} className="mb-4" />
+              </div>
               <JournalStockChartView
                 chart={chart}
                 height={chartHeight}
@@ -134,8 +136,9 @@ export default function JournalChartPage() {
                   setSearchParams({ entry: String(id) })
                 }}
                 showMarkerHint
+                edgeToEdge
               />
-              <div className="mt-4 border-t border-slate-100 pt-4 lg:hidden">
+              <div className="mt-4 border-t border-slate-100 pt-4 px-4 md:px-6 lg:hidden">
                 <JournalSrLinesControls chart={chart} compact />
               </div>
             </CardContent>

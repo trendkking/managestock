@@ -12,9 +12,9 @@ import {
 import { Loader2 } from 'lucide-react'
 import { CandlestickSeries } from '@/components/features/journal/CandlestickLayer'
 import {
-  CHART_MARGIN,
+  useChartDisplayLayout,
   X_AXIS_HEIGHT,
-  Y_AXIS_WIDTH,
+  type ChartDisplayLayout,
   type JournalStockChartState,
 } from '@/components/features/journal/useJournalStockChart'
 import {
@@ -22,6 +22,7 @@ import {
   CHART_INITIAL_VISIBLE_BARS,
   CHART_VISIBLE_MONTHS,
   formatChartAxisWon,
+  estimateChartYAxisWidth,
   MA_COLORS,
   MA_PERIODS,
   type MaPeriod,
@@ -138,9 +139,9 @@ function pinchCenterX(points: PointerPoint[]): number {
   return (points[0].x + points[1].x) / 2
 }
 
-function zoomAnchorRatio(clientX: number, rect: DOMRect): number {
-  const plotLeft = CHART_MARGIN.left + Y_AXIS_WIDTH
-  const width = Math.max(1, rect.width - plotLeft - CHART_MARGIN.right)
+function zoomAnchorRatio(clientX: number, rect: DOMRect, layout: ChartDisplayLayout): number {
+  const plotLeft = layout.margin.left + layout.yAxisWidth
+  const width = Math.max(1, rect.width - plotLeft - layout.margin.right)
   return clampChart((clientX - rect.left - plotLeft) / width, 0, 1)
 }
 
@@ -267,6 +268,7 @@ type JournalStockChartViewProps = {
   previewMarker?: { date: string; side: JournalEntrySide; reason?: string }
   showMarkerHint?: boolean
   enablePanZoom?: boolean
+  edgeToEdge?: boolean
 }
 
 export function JournalStockChartView({
@@ -278,7 +280,12 @@ export function JournalStockChartView({
   previewMarker,
   showMarkerHint = false,
   enablePanZoom = true,
+  edgeToEdge = false,
 }: JournalStockChartViewProps) {
+  const displayLayout = useChartDisplayLayout()
+  const { margin } = displayLayout
+  const yAxisFontSize = displayLayout.yAxisWidth < 60 ? 9 : 10
+  const edgePad = edgeToEdge ? 'px-4 md:px-6' : ''
   const chartWrapRef = useRef<HTMLDivElement>(null)
   const [isPanning, setIsPanning] = useState(false)
   const isPanningRef = useRef(false)
@@ -313,11 +320,17 @@ export function JournalStockChartView({
     priceData,
   } = chart
 
+  const fittedYAxisWidth = useMemo(
+    () => estimateChartYAxisWidth(yDomain, region, yAxisFontSize),
+    [region, yAxisFontSize, yDomain],
+  )
+  const plotLeft = margin.left + fittedYAxisWidth
+
   const plotWidth = useCallback(() => {
     const rect = chartWrapRef.current?.getBoundingClientRect()
     if (!rect) return 1
-    return Math.max(1, rect.width - CHART_MARGIN.left - Y_AXIS_WIDTH - CHART_MARGIN.right)
-  }, [])
+    return Math.max(1, rect.width - margin.left - fittedYAxisWidth - margin.right)
+  }, [fittedYAxisWidth, margin.left, margin.right])
 
   useEffect(() => {
     if (!enablePanZoom) return
@@ -328,24 +341,23 @@ export function JournalStockChartView({
       if (!e.ctrlKey && !e.metaKey) return
       e.preventDefault()
       const rect = el.getBoundingClientRect()
-      const plotLeft = CHART_MARGIN.left + Y_AXIS_WIDTH
-      const width = Math.max(1, rect.width - plotLeft - CHART_MARGIN.right)
+      const width = Math.max(1, rect.width - plotLeft - margin.right)
       const ratio = clampChart((e.clientX - rect.left - plotLeft) / width, 0, 1)
       zoomViewport(e.deltaY > 0 ? 1.12 : 0.88, ratio)
     }
 
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
-  }, [enablePanZoom, zoomViewport])
+  }, [enablePanZoom, margin.right, plotLeft, zoomViewport])
 
   const plotBounds = useCallback(
     (rect: DOMRect) => ({
-      left: CHART_MARGIN.left + Y_AXIS_WIDTH,
-      top: CHART_MARGIN.top,
-      bottom: height - CHART_MARGIN.bottom - X_AXIS_HEIGHT,
-      right: rect.width - CHART_MARGIN.right,
+      left: plotLeft,
+      top: margin.top,
+      bottom: height - margin.bottom - X_AXIS_HEIGHT,
+      right: rect.width - margin.right,
     }),
-    [height],
+    [height, margin.bottom, margin.top, margin.right, plotLeft],
   )
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -362,7 +374,7 @@ export function JournalStockChartView({
       const rect = e.currentTarget.getBoundingClientRect()
       pinchRef.current = {
         distance: pinchDistance(activePoints),
-        anchorRatio: zoomAnchorRatio(pinchCenterX(activePoints), rect),
+        anchorRatio: zoomAnchorRatio(pinchCenterX(activePoints), rect, displayLayout),
       }
       e.currentTarget.setPointerCapture(e.pointerId)
       e.preventDefault()
@@ -485,7 +497,7 @@ export function JournalStockChartView({
     }
 
     if (wasClick && srDrawKind) {
-      addSrLineAtPoint(e.clientX, e.clientY, rect, height)
+      addSrLineAtPoint(e.clientX, e.clientY, rect, height, { margin, yAxisWidth: fittedYAxisWidth })
     }
   }
 
@@ -551,7 +563,7 @@ export function JournalStockChartView({
 
   return (
     <>
-      <p className="mb-3 text-xs text-slate-500">
+      <p className={`mb-3 text-xs text-slate-500 ${edgePad}`}>
         {usingFallback
           ? '시세 API 연결에 실패해 참고용 캔들을 표시합니다.'
           : chartMeta
@@ -571,7 +583,7 @@ export function JournalStockChartView({
           </>
         )}
       </p>
-      {chartError && <p className="mb-2 text-xs text-amber-700">{chartError}</p>}
+      {chartError && <p className={`mb-2 text-xs text-amber-700 ${edgePad}`}>{chartError}</p>}
       <div
         ref={chartWrapRef}
         className={`relative ${cursorClass ?? ''}`}
@@ -589,7 +601,7 @@ export function JournalStockChartView({
             aria-hidden
           >
             <line
-              x1={CHART_MARGIN.left + Y_AXIS_WIDTH}
+              x1={plotLeft}
               y1={crosshair.y}
               x2={crosshair.x2}
               y2={crosshair.y}
@@ -599,10 +611,9 @@ export function JournalStockChartView({
               opacity={0.85}
             />
             {(() => {
-              const plotLeft = CHART_MARGIN.left + Y_AXIS_WIDTH
               const priceLabel = formatSrPrice(crosshair.price, region)
               const priceLabelWidth = Math.max(52, priceLabel.length * 7 + 12)
-              const priceLabelX = CHART_MARGIN.left + 2
+              const priceLabelX = margin.left + 2
               const priceLabelY = crosshair.y - 10
               const dateLabel = crosshair.date.replace(/-/g, '.')
               const dateLabelWidth = Math.max(72, dateLabel.length * 7 + 12)
@@ -611,7 +622,7 @@ export function JournalStockChartView({
                 plotLeft,
                 crosshair.x2 - dateLabelWidth,
               )
-              const dateLabelY = height - CHART_MARGIN.bottom - X_AXIS_HEIGHT + 4
+              const dateLabelY = height - margin.bottom - X_AXIS_HEIGHT + 4
 
               return (
                 <g>
@@ -663,7 +674,7 @@ export function JournalStockChartView({
           </svg>
         )}
         <ResponsiveContainer width="100%" height={height} initialDimension={{ width: 520, height }}>
-          <ComposedChart data={visibleChartData} margin={CHART_MARGIN}>
+          <ComposedChart data={visibleChartData} margin={margin}>
             <defs>
               <filter id="journal-marker-shadow" x="-50%" y="-50%" width="200%" height="200%">
                 <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#0f172a" floodOpacity="0.35" />
@@ -674,19 +685,36 @@ export function JournalStockChartView({
               dataKey="date"
               type="category"
               allowDuplicatedCategory={false}
-              tick={{ fontSize: 10, fill: '#475569' }}
+              tick={{ fontSize: yAxisFontSize, fill: '#475569' }}
               interval="preserveStartEnd"
               height={X_AXIS_HEIGHT}
+              padding={{ left: 0, right: 0 }}
             />
             <YAxis
               domain={yDomain}
-              tickFormatter={(v) =>
-                region === 'US'
-                  ? `$${Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 })}`
-                  : formatChartAxisWon(v)
-              }
-              tick={{ fontSize: 10, fill: '#475569' }}
-              width={Y_AXIS_WIDTH}
+              width={fittedYAxisWidth}
+              axisLine={false}
+              tickLine={false}
+              tickMargin={0}
+              tick={({ y, payload }) => {
+                const value = Number(payload.value)
+                const label =
+                  region === 'US'
+                    ? `$${value.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
+                    : formatChartAxisWon(value)
+                return (
+                  <text
+                    x={3}
+                    y={y}
+                    dy={4}
+                    textAnchor="start"
+                    fontSize={yAxisFontSize}
+                    fill="#475569"
+                  >
+                    {label}
+                  </text>
+                )
+              }}
             />
             <CandlestickSeries data={visibleChartData} region={region} />
             {MA_PERIODS.filter((period) => visibleMa.has(period)).map((period) => (
