@@ -13,7 +13,7 @@ import { PageHeader } from '@/components/ui/Common'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
 import { DataTable, Td, Th } from '@/components/ui/StatCard'
-import { ohlcOnDate, resolvePriceDate, CHART_VISIBLE_MONTHS } from '@/lib/journalStockChart'
+import { ohlcOnDate, resolvePriceDate, CHART_INITIAL_VISIBLE_BARS, CHART_VISIBLE_MONTHS } from '@/lib/journalStockChart'
 import { useDataStore } from '@/stores/dataStore'
 import type { JournalEntry } from '@/types'
 import { formatCurrency, truncate } from '@/utils'
@@ -98,7 +98,7 @@ export default function JournalChartPage() {
 
       <PageHeader
         title={`${stockName} 차트`}
-        description={`${stockCode}${chart.chartMeta ? ` · ${chart.chartMeta.market}` : ''} · ${CHART_VISIBLE_MONTHS}개월 표시 · 휠/드래그로 이동 · 기록 ${entries.length}건`}
+        description={`${stockCode}${chart.chartMeta ? ` · ${chart.chartMeta.market}` : ''} · ${CHART_INITIAL_VISIBLE_BARS}봉(약 ${CHART_VISIBLE_MONTHS}개월) · 휠/드래그로 이동 · 기록 ${entries.length}건`}
         action={
           <Button variant="outline" size="sm" onClick={() => navigate('/journal')}>
             <Plus className="h-4 w-4" /> 기록 추가

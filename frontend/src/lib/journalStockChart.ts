@@ -94,12 +94,12 @@ export function formatChartAxisWon(value: number): string {
 
 export const MA_PERIODS = [5, 20, 40, 60, 120] as const
 
-/** 차트에 기본으로 보여 줄 구간(약 12개월 거래일) */
-export const CHART_VISIBLE_MONTHS = 12
-export const CHART_INITIAL_VISIBLE_BARS = 252
+/** 차트에 기본으로 보여 줄 구간 — 160거래일(약 8개월) */
+export const CHART_VISIBLE_MONTHS = 8
+export const CHART_INITIAL_VISIBLE_BARS = 160
 
-/** 120일선 계산을 포함한 일봉 조회 기간 */
-export const CHART_FETCH_MONTHS = 12
+/** 120일선이 화면 전체에 그려지도록 표시 구간 + 여유 조회 */
+export const CHART_FETCH_MONTHS = 14
 export const CHART_MIN_VISIBLE_BARS = 20
 
 export type ChartViewport = { start: number; count: number }

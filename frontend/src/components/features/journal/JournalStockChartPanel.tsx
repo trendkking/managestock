@@ -19,6 +19,7 @@ import {
 } from '@/components/features/journal/useJournalStockChart'
 import {
   clampChart,
+  CHART_INITIAL_VISIBLE_BARS,
   CHART_VISIBLE_MONTHS,
   formatChartAxisWon,
   MA_COLORS,
@@ -461,7 +462,7 @@ export function JournalStockChartView({
         {usingFallback
           ? '시세 API 연결에 실패해 참고용 캔들을 표시합니다.'
           : chartMeta
-            ? `일봉 캔들 · ${chartMeta.source} · 기본 ${CHART_VISIBLE_MONTHS}개월 표시`
+            ? `일봉 캔들 · ${chartMeta.source} · 기본 ${CHART_INITIAL_VISIBLE_BARS}봉(약 ${CHART_VISIBLE_MONTHS}개월)`
             : '시세를 불러오는 중…'}
         {enablePanZoom && ' · 휠: 확대/축소 · 드래그: 좌우 이동'}
         {visibleDateRange && (
