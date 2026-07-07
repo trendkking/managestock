@@ -325,6 +325,7 @@ export function JournalStockChartView({
     if (!el) return
 
     const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return
       e.preventDefault()
       const rect = el.getBoundingClientRect()
       const plotLeft = CHART_MARGIN.left + Y_AXIS_WIDTH
@@ -378,8 +379,10 @@ export function JournalStockChartView({
       count: chart.viewport.count,
       plotWidth: plotWidth(),
     }
-    e.currentTarget.setPointerCapture(e.pointerId)
-    e.preventDefault()
+    if (e.pointerType === 'mouse') {
+      e.currentTarget.setPointerCapture(e.pointerId)
+      e.preventDefault()
+    }
   }
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -408,11 +411,24 @@ export function JournalStockChartView({
       const dx = e.clientX - pointerDownRef.current.x
       const dy = e.clientY - pointerDownRef.current.y
       if (!didDragRef.current && Math.hypot(dx, dy) >= CHART_DRAG_THRESHOLD) {
-        didDragRef.current = true
-        setIsPanning(true)
-        isPanningRef.current = true
+        if (Math.abs(dx) > Math.abs(dy)) {
+          didDragRef.current = true
+          setIsPanning(true)
+          isPanningRef.current = true
+          if (e.pointerType === 'touch' && !e.currentTarget.hasPointerCapture(e.pointerId)) {
+            e.currentTarget.setPointerCapture(e.pointerId)
+          }
+        } else {
+          pointerDownRef.current = null
+          activePointersRef.current.delete(e.pointerId)
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            e.currentTarget.releasePointerCapture(e.pointerId)
+          }
+          return
+        }
       }
       if (didDragRef.current) {
+        e.preventDefault()
         const deltaBars = Math.round(
           ((panRef.current.x - e.clientX) / panRef.current.plotWidth) * panRef.current.count,
         )
@@ -541,7 +557,7 @@ export function JournalStockChartView({
           : chartMeta
             ? `일봉 캔들 · ${chartMeta.source} · 기본 ${CHART_INITIAL_VISIBLE_BARS}봉(약 ${CHART_VISIBLE_MONTHS}개월)`
             : '시세를 불러오는 중…'}
-        {enablePanZoom && ' · 휠/핀치: 확대·축소 · 드래그: 좌우 이동'}
+        {enablePanZoom && ' · Ctrl+휠 / 핀치: 확대·축소 · 드래그: 좌우 이동'}
         {visibleDateRange && (
           <span className="ml-1 tabular-nums text-slate-400">
             ({visibleDateRange.from} ~ {visibleDateRange.to})
@@ -559,7 +575,7 @@ export function JournalStockChartView({
       <div
         ref={chartWrapRef}
         className={`relative ${cursorClass ?? ''}`}
-        style={{ touchAction: enablePanZoom ? 'none' : undefined }}
+        style={{ touchAction: enablePanZoom ? 'pan-y' : undefined }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
