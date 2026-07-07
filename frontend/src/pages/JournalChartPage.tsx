@@ -98,7 +98,7 @@ export default function JournalChartPage() {
 
       <PageHeader
         title={`${stockName} 차트`}
-        description={`${stockCode}${chart.chartMeta ? ` · ${chart.chartMeta.market}` : ''} · ${CHART_INITIAL_VISIBLE_BARS}봉(약 ${CHART_VISIBLE_MONTHS}개월) · 휠/드래그로 이동 · 기록 ${entries.length}건`}
+        description={`${stockCode}${chart.chartMeta ? ` · ${chart.chartMeta.market}` : ''} · ${CHART_INITIAL_VISIBLE_BARS}봉(약 ${CHART_VISIBLE_MONTHS}개월) · 휠/핀치 확대·축소 · 드래그 이동 · 기록 ${entries.length}건`}
         action={
           <Button variant="outline" size="sm" onClick={() => navigate('/journal')}>
             <Plus className="h-4 w-4" /> 기록 추가

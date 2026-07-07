@@ -125,6 +125,24 @@ function JournalMarker({
 }
 
 const CHART_DRAG_THRESHOLD = 6
+const PINCH_ZOOM_MIN_SCALE_DELTA = 0.008
+
+type PointerPoint = { x: number; y: number }
+
+function pinchDistance(points: PointerPoint[]): number {
+  if (points.length < 2) return 0
+  return Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y)
+}
+
+function pinchCenterX(points: PointerPoint[]): number {
+  return (points[0].x + points[1].x) / 2
+}
+
+function zoomAnchorRatio(clientX: number, rect: DOMRect): number {
+  const plotLeft = CHART_MARGIN.left + Y_AXIS_WIDTH
+  const width = Math.max(1, rect.width - plotLeft - CHART_MARGIN.right)
+  return clampChart((clientX - rect.left - plotLeft) / width, 0, 1)
+}
 
 function formatSrPrice(value: number, region?: 'KR' | 'US'): string {
   if (region === 'US') {
@@ -273,6 +291,8 @@ export function JournalStockChartView({
   } | null>(null)
   const panRef = useRef({ x: 0, start: 0, count: 0, plotWidth: 1 })
   const pointerDownRef = useRef<{ x: number; y: number } | null>(null)
+  const activePointersRef = useRef(new Map<number, PointerPoint>())
+  const pinchRef = useRef<{ distance: number; anchorRatio: number } | null>(null)
   const didDragRef = useRef(false)
 
   const {
@@ -328,7 +348,28 @@ export function JournalStockChartView({
   )
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!enablePanZoom || e.button !== 0) return
+    if (e.pointerType === 'mouse' && e.button !== 0) return
+
+    activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    const activePoints = [...activePointersRef.current.values()]
+
+    if (enablePanZoom && !srDrawKind && activePoints.length >= 2) {
+      pointerDownRef.current = null
+      didDragRef.current = true
+      setIsPanning(false)
+      isPanningRef.current = false
+      const rect = e.currentTarget.getBoundingClientRect()
+      pinchRef.current = {
+        distance: pinchDistance(activePoints),
+        anchorRatio: zoomAnchorRatio(pinchCenterX(activePoints), rect),
+      }
+      e.currentTarget.setPointerCapture(e.pointerId)
+      e.preventDefault()
+      return
+    }
+
+    if (!enablePanZoom) return
+
     didDragRef.current = false
     pointerDownRef.current = { x: e.clientX, y: e.clientY }
     panRef.current = {
@@ -344,6 +385,24 @@ export function JournalStockChartView({
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
     const bounds = plotBounds(rect)
+
+    if (activePointersRef.current.has(e.pointerId)) {
+      activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    }
+
+    const activePoints = [...activePointersRef.current.values()]
+    if (enablePanZoom && !srDrawKind && activePoints.length >= 2 && pinchRef.current) {
+      const newDistance = pinchDistance(activePoints)
+      if (newDistance > 0 && pinchRef.current.distance > 0) {
+        const scale = newDistance / pinchRef.current.distance
+        if (Math.abs(scale - 1) >= PINCH_ZOOM_MIN_SCALE_DELTA) {
+          zoomViewport(1 / scale, pinchRef.current.anchorRatio)
+          pinchRef.current.distance = newDistance
+        }
+      }
+      setCrosshair(null)
+      return
+    }
 
     if (pointerDownRef.current && enablePanZoom) {
       const dx = e.clientX - pointerDownRef.current.x
@@ -385,8 +444,18 @@ export function JournalStockChartView({
     }
   }
 
-  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!pointerDownRef.current) return
+  const endPointer = (e: React.PointerEvent<HTMLDivElement>) => {
+    activePointersRef.current.delete(e.pointerId)
+    if (activePointersRef.current.size < 2) {
+      pinchRef.current = null
+    }
+
+    if (!pointerDownRef.current) {
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId)
+      }
+      return
+    }
 
     const rect = e.currentTarget.getBoundingClientRect()
     const wasClick = !didDragRef.current
@@ -402,6 +471,14 @@ export function JournalStockChartView({
     if (wasClick && srDrawKind) {
       addSrLineAtPoint(e.clientX, e.clientY, rect, height)
     }
+  }
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    endPointer(e)
+  }
+
+  const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    endPointer(e)
   }
 
   const handlePointerLeave = () => {
@@ -464,7 +541,7 @@ export function JournalStockChartView({
           : chartMeta
             ? `일봉 캔들 · ${chartMeta.source} · 기본 ${CHART_INITIAL_VISIBLE_BARS}봉(약 ${CHART_VISIBLE_MONTHS}개월)`
             : '시세를 불러오는 중…'}
-        {enablePanZoom && ' · 휠: 확대/축소 · 드래그: 좌우 이동'}
+        {enablePanZoom && ' · 휠/핀치: 확대·축소 · 드래그: 좌우 이동'}
         {visibleDateRange && (
           <span className="ml-1 tabular-nums text-slate-400">
             ({visibleDateRange.from} ~ {visibleDateRange.to})
@@ -486,6 +563,7 @@ export function JournalStockChartView({
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
         onPointerLeave={handlePointerLeave}
         role="presentation"
       >
