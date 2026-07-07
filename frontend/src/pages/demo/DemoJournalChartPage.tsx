@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
+import { JournalEntriesList } from '@/components/features/journal/JournalEntriesList'
 import {
   JournalMaControls,
   JournalSrLinesControls,
@@ -11,12 +12,23 @@ import { useJournalStockChart } from '@/components/features/journal/useJournalSt
 import { PageHeader } from '@/components/ui/Common'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
-import { DataTable, Td, Th } from '@/components/ui/StatCard'
 import { ohlcOnDate, resolvePriceDate } from '@/lib/journalStockChart'
 import { useDemoStore } from '@/stores/demoStore'
 import type { JournalEntry } from '@/types'
-import { formatCurrency, truncate } from '@/utils'
+import { formatCurrency } from '@/utils'
 import { Badge } from '@/components/ui/Badge'
+
+function useMobileChartHeight() {
+  const [height, setHeight] = useState(380)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)')
+    const apply = () => setHeight(mq.matches ? 300 : 380)
+    apply()
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
+  }, [])
+  return height
+}
 
 export default function DemoJournalChartPage() {
   const { stockCode: stockCodeParam } = useParams()
@@ -24,6 +36,7 @@ export default function DemoJournalChartPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const journalEntries = useDemoStore((s) => s.journalEntries)
   const chart = useJournalStockChart(stockCode)
+  const chartHeight = useMobileChartHeight()
 
   const entries = useMemo(
     () =>
@@ -88,23 +101,24 @@ export default function DemoJournalChartPage() {
   }
 
   return (
-    <div>
+    <div className="min-w-0">
       <Link to="/demo/journal" className="mb-4 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900">
         <ArrowLeft className="h-4 w-4" /> 매매일지 목록
       </Link>
 
       <PageHeader
         title={`${stockName} 차트`}
-        description={`${stockCode}${chart.chartMeta ? ` · ${chart.chartMeta.market}` : ''} · 체험용 샘플 기록 ${entries.length}건`}
+        description={`${stockCode} · 체험용 샘플 기록 ${entries.length}건`}
       />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+      <div className="grid gap-4 lg:grid-cols-3 lg:gap-6">
+        <div className="min-w-0 lg:col-span-2">
           <Card>
             <CardContent className="pt-6">
               <JournalMaControls visibleMa={chart.visibleMa} toggleMa={chart.toggleMa} className="mb-4" />
               <JournalStockChartView
                 chart={chart}
+                height={chartHeight}
                 markers={markers}
                 selectedMarkerId={selectedId}
                 onMarkerSelect={(id) => {
@@ -113,17 +127,20 @@ export default function DemoJournalChartPage() {
                 }}
                 showMarkerHint
               />
+              <div className="mt-4 border-t border-slate-100 pt-4 lg:hidden">
+                <JournalSrLinesControls chart={chart} compact />
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-4 lg:space-y-6">
           <Card>
             <CardContent className="pt-6">
               <h3 className="text-sm font-semibold text-slate-500">선택한 기록</h3>
               {selectedEntry ? (
                 <div className="mt-3 space-y-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <p className="text-lg font-bold text-slate-900">{selectedEntry.journalDate}</p>
                     <Badge variant={selectedEntry.side === 'buy' ? 'success' : 'danger'}>
                       {selectedEntry.side === 'buy' ? '매수' : '매도'}
@@ -135,12 +152,12 @@ export default function DemoJournalChartPage() {
                   </div>
                 </div>
               ) : (
-                <p className="mt-3 text-sm text-slate-500">차트 마커 또는 아래 표에서 기록을 선택하세요.</p>
+                <p className="mt-3 text-sm text-slate-500">차트 마커 또는 아래 기록에서 항목을 선택하세요.</p>
               )}
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="hidden lg:block">
             <CardContent className="pt-6">
               <JournalSrLinesControls chart={chart} />
             </CardContent>
@@ -149,32 +166,15 @@ export default function DemoJournalChartPage() {
       </div>
 
       {entries.length > 0 && (
-        <DataTable className="mt-6">
-            <thead>
-              <tr className="bg-slate-50">
-                <Th>날짜</Th>
-                <Th className="w-20">구분</Th>
-                <Th>사유</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {entries.map((entry) => (
-                <tr
-                  key={entry.id}
-                  className={`cursor-pointer ${entry.id === selectedId ? 'bg-primary-subtle' : 'hover:bg-slate-50'}`}
-                  onClick={() => selectEntry(entry)}
-                >
-                  <Td className="whitespace-nowrap tabular-nums">{entry.journalDate}</Td>
-                  <Td>
-                    <Badge variant={entry.side === 'buy' ? 'success' : 'danger'}>
-                      {entry.side === 'buy' ? '매수' : '매도'}
-                    </Badge>
-                  </Td>
-                  <Td className="text-slate-700">{truncate(entry.reason, 120)}</Td>
-                </tr>
-              ))}
-            </tbody>
-          </DataTable>
+        <>
+          <h3 className="mb-3 mt-6 text-sm font-semibold text-slate-500">이 종목 기록</h3>
+          <JournalEntriesList
+            entries={entries}
+            variant="chart"
+            selectedId={selectedId}
+            onEntryClick={selectEntry}
+          />
+        </>
       )}
 
       {selectedEntry && (() => {

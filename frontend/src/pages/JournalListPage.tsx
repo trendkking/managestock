@@ -1,18 +1,16 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LineChart, Pencil, Plus, Search, Trash2 } from 'lucide-react'
+import { Plus, Search } from 'lucide-react'
 import { JournalEntryFormDialog } from '@/components/features/journal/JournalEntryFormDialog'
+import { JournalEntriesList } from '@/components/features/journal/JournalEntriesList'
 import { JournalRuleMemoPanel } from '@/components/features/journal/JournalRuleMemoPanel'
 import { PageHeader, EmptyState } from '@/components/ui/Common'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Dialog, DialogContent } from '@/components/ui/Dialog'
-import { DataTable, Td, Th } from '@/components/ui/StatCard'
 import { getApiErrorMessage } from '@/lib/apiError'
 import { useDataStore } from '@/stores/dataStore'
 import type { JournalEntry } from '@/types'
-import { truncate } from '@/utils'
-import { Badge } from '@/components/ui/Badge'
 
 export default function JournalListPage() {
   const navigate = useNavigate()
@@ -47,9 +45,8 @@ export default function JournalListPage() {
     setDialogOpen(true)
   }
 
-  const openChart = (stockCodeValue: string, entryId?: number) => {
-    const path = `/journal/chart/${encodeURIComponent(stockCodeValue)}`
-    navigate(entryId ? `${path}?entry=${entryId}` : path)
+  const openChart = (entry: JournalEntry) => {
+    navigate(`/journal/chart/${encodeURIComponent(entry.stockCode)}?entry=${entry.id}`)
   }
 
   return (
@@ -66,7 +63,7 @@ export default function JournalListPage() {
 
       <JournalRuleMemoPanel className="mb-6" />
 
-      <div className="mb-4 relative max-w-md">
+      <div className="relative mb-4 max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <Input
           placeholder="종목, 사유, 날짜 검색..."
@@ -87,81 +84,18 @@ export default function JournalListPage() {
           }
         />
       ) : (
-        <DataTable>
-          <thead>
-            <tr className="bg-slate-50">
-              <Th>날짜</Th>
-              <Th className="w-20">구분</Th>
-              <Th>종목</Th>
-              <Th className="hidden sm:table-cell">사유</Th>
-              <Th className="w-28 text-center">차트</Th>
-              <Th className="w-24">&nbsp;</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((entry) => (
-              <tr
-                key={entry.id}
-                className="cursor-pointer hover:bg-primary-subtle/50"
-                onClick={() => openChart(entry.stockCode, entry.id)}
-              >
-                <Td className="whitespace-nowrap tabular-nums">{entry.journalDate}</Td>
-                <Td>
-                  <Badge variant={entry.side === 'buy' ? 'success' : 'danger'}>
-                    {entry.side === 'buy' ? '매수' : '매도'}
-                  </Badge>
-                </Td>
-                <Td>
-                  <span className="block truncate font-medium text-slate-900">{entry.stockName}</span>
-                  <span className="block truncate text-xs text-slate-500">{entry.stockCode}</span>
-                </Td>
-                <Td className="hidden max-w-md text-slate-600 sm:table-cell">{truncate(entry.reason, 80)}</Td>
-                  <Td className="text-center">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={(ev) => {
-                        ev.stopPropagation()
-                        openChart(entry.stockCode, entry.id)
-                      }}
-                    >
-                      <LineChart className="h-4 w-4" />
-                    </Button>
-                  </Td>
-                  <Td>
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        onClick={(ev) => {
-                          ev.stopPropagation()
-                          openEdit(entry)
-                        }}
-                      >
-                        <Pencil className="h-4 w-4 text-slate-500" />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        onClick={(ev) => {
-                          ev.stopPropagation()
-                          setDeleteTarget({
-                            id: entry.id,
-                            label: `${entry.journalDate} · ${entry.stockName}`,
-                          })
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </div>
-                  </Td>
-                </tr>
-            ))}
-          </tbody>
-        </DataTable>
+        <JournalEntriesList
+          entries={filtered}
+          onEntryClick={openChart}
+          onChart={openChart}
+          onEdit={openEdit}
+          onDelete={(entry) =>
+            setDeleteTarget({
+              id: entry.id,
+              label: `${entry.journalDate} · ${entry.stockName}`,
+            })
+          }
+        />
       )}
 
       <JournalEntryFormDialog
