@@ -21,16 +21,14 @@
 }
 
 html {
-  overflow-x: hidden;
-  max-width: 100%;
+  overflow-x: clip;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
   min-height: 100dvh;
-  max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
   font-family: var(--font-sans);
   background-color: var(--color-background);
   color: #0f172a;
@@ -42,8 +40,6 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   min-width: 0;
-  max-width: 100%;
-  overflow-x: hidden;
 }
 
 /* PWA standalone — safe area (notch) */

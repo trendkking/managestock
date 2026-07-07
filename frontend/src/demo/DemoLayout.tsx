@@ -12,7 +12,7 @@ const navItems = [
 
 export function DemoLayout() {
   return (
-    <div className="flex min-h-screen flex-col bg-primary-subtle/40">
+    <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-primary-subtle/40">
       <div className="border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-center text-sm text-amber-950">
         <span className="inline-flex items-center gap-1.5 font-medium">
           <Sparkles className="h-4 w-4 shrink-0" />
@@ -62,7 +62,7 @@ export function DemoLayout() {
         </div>
       </header>
 
-      <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 p-4 md:p-6">
+      <main className="mx-auto w-full min-h-0 min-w-0 max-w-6xl flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6">
         <Outlet />
       </main>
 

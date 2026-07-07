@@ -112,8 +112,8 @@ export default function JournalListPage() {
                   </Badge>
                 </Td>
                 <Td>
-                  <span className="font-medium text-slate-900">{entry.stockName}</span>
-                  <span className="ml-2 text-xs text-slate-500">{entry.stockCode}</span>
+                  <span className="block truncate font-medium text-slate-900">{entry.stockName}</span>
+                  <span className="block truncate text-xs text-slate-500">{entry.stockCode}</span>
                 </Td>
                 <Td className="hidden max-w-md text-slate-600 sm:table-cell">{truncate(entry.reason, 80)}</Td>
                   <Td className="text-center">
