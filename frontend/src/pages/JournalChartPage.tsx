@@ -162,8 +162,7 @@ export default function JournalChartPage() {
       </div>
 
       {entries.length > 0 && (
-        <div className="mt-6 overflow-x-auto rounded-xl border border-slate-200 bg-white">
-          <DataTable>
+        <DataTable className="mt-6">
             <thead>
               <tr className="bg-slate-50">
                 <Th>날짜</Th>
@@ -189,7 +188,6 @@ export default function JournalChartPage() {
               ))}
             </tbody>
           </DataTable>
-        </div>
       )}
 
       {selectedEntry && (() => {

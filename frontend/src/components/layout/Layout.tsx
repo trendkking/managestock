@@ -120,7 +120,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <div className="flex min-h-screen bg-primary-subtle/40">
+    <div className="flex min-h-screen min-w-0 bg-primary-subtle/40">
       <Sidebar />
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
@@ -130,9 +130,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       )}
-      <div className="flex flex-1 flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+      <div className="flex min-w-0 flex-1 flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
         <Header onMenuClick={() => setMobileOpen(true)} />
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="min-w-0 flex-1 p-4 md:p-6">{children}</main>
       </div>
       <MobileBottomNav />
     </div>

@@ -32,10 +32,21 @@ export function StatCard({
   )
 }
 
-export function DataTable({ children }: { children: React.ReactNode }) {
+export function DataTable({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-      <table className="w-full min-w-[640px] text-left text-sm">{children}</table>
+    <div
+      className={cn(
+        'w-full max-w-full min-w-0 overflow-x-auto rounded-xl border border-slate-200 bg-white',
+        className,
+      )}
+    >
+      <table className="w-full min-w-0 text-left text-sm md:min-w-[640px]">{children}</table>
     </div>
   )
 }

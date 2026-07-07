@@ -53,7 +53,7 @@ export default function JournalListPage() {
   }
 
   return (
-    <div>
+    <div className="min-w-0">
       <PageHeader
         title="매매일지"
         description="날짜·종목·사유를 기록하고, 종목을 클릭하면 차트에서 확인합니다"
@@ -87,36 +87,35 @@ export default function JournalListPage() {
           }
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-          <DataTable>
-            <thead>
-              <tr className="bg-slate-50">
-                <Th>날짜</Th>
-                <Th className="w-20">구분</Th>
-                <Th>종목</Th>
-                <Th>사유</Th>
-                <Th className="w-28 text-center">차트</Th>
-                <Th className="w-24">&nbsp;</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((entry) => (
-                <tr
-                  key={entry.id}
-                  className="cursor-pointer hover:bg-primary-subtle/50"
-                  onClick={() => openChart(entry.stockCode, entry.id)}
-                >
-                  <Td className="whitespace-nowrap tabular-nums">{entry.journalDate}</Td>
-                  <Td>
-                    <Badge variant={entry.side === 'buy' ? 'success' : 'danger'}>
-                      {entry.side === 'buy' ? '매수' : '매도'}
-                    </Badge>
-                  </Td>
-                  <Td>
-                    <span className="font-medium text-slate-900">{entry.stockName}</span>
-                    <span className="ml-2 text-xs text-slate-500">{entry.stockCode}</span>
-                  </Td>
-                  <Td className="max-w-md text-slate-600">{truncate(entry.reason, 80)}</Td>
+        <DataTable>
+          <thead>
+            <tr className="bg-slate-50">
+              <Th>날짜</Th>
+              <Th className="w-20">구분</Th>
+              <Th>종목</Th>
+              <Th className="hidden sm:table-cell">사유</Th>
+              <Th className="w-28 text-center">차트</Th>
+              <Th className="w-24">&nbsp;</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((entry) => (
+              <tr
+                key={entry.id}
+                className="cursor-pointer hover:bg-primary-subtle/50"
+                onClick={() => openChart(entry.stockCode, entry.id)}
+              >
+                <Td className="whitespace-nowrap tabular-nums">{entry.journalDate}</Td>
+                <Td>
+                  <Badge variant={entry.side === 'buy' ? 'success' : 'danger'}>
+                    {entry.side === 'buy' ? '매수' : '매도'}
+                  </Badge>
+                </Td>
+                <Td>
+                  <span className="font-medium text-slate-900">{entry.stockName}</span>
+                  <span className="ml-2 text-xs text-slate-500">{entry.stockCode}</span>
+                </Td>
+                <Td className="hidden max-w-md text-slate-600 sm:table-cell">{truncate(entry.reason, 80)}</Td>
                   <Td className="text-center">
                     <Button
                       type="button"
@@ -160,10 +159,9 @@ export default function JournalListPage() {
                     </div>
                   </Td>
                 </tr>
-              ))}
-            </tbody>
-          </DataTable>
-        </div>
+            ))}
+          </tbody>
+        </DataTable>
       )}
 
       <JournalEntryFormDialog

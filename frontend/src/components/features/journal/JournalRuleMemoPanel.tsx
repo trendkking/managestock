@@ -169,7 +169,7 @@ export function JournalRuleMemoPanel({
   const savedLabel = formatSavedAt(updatedAt)
 
   return (
-    <Card className={cn('border-amber-200/80 bg-gradient-to-br from-amber-50/80 to-white', className)}>
+    <Card className={cn('min-w-0 border-amber-200/80 bg-gradient-to-br from-amber-50/80 to-white', className)}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex gap-3">
