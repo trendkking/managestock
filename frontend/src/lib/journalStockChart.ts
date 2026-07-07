@@ -92,29 +92,6 @@ export function formatChartAxisWon(value: number): string {
   return Math.round(value).toLocaleString('en-US')
 }
 
-/** Y축 라벨 길이에 맞춘 축 너비 (불필요한 좌우 여백 제거) */
-export function estimateChartYAxisWidth(
-  domain: [number, number],
-  region: 'KR' | 'US' | undefined,
-  fontSize: number,
-): number {
-  const [min, max] = domain
-  if (!Number.isFinite(min) || !Number.isFinite(max)) return 44
-
-  const ticks = [min, max, (min + max) / 2]
-  for (let i = 1; i <= 4; i += 1) {
-    ticks.push(min + ((max - min) * i) / 5)
-  }
-
-  const format =
-    region === 'US'
-      ? (value: number) => `$${value.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
-      : formatChartAxisWon
-
-  const longest = ticks.reduce((maxLen, value) => Math.max(maxLen, format(value).length), 0)
-  return Math.ceil(longest * fontSize * 0.62) + 6
-}
-
 export const MA_PERIODS = [5, 20, 40, 60, 120] as const
 
 /** 차트에 기본으로 보여 줄 구간 — 160거래일(약 8개월) */

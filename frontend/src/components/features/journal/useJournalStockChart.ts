@@ -23,38 +23,9 @@ import {
   zoomChartViewport,
 } from '@/lib/journalStockChart'
 
-export const CHART_MARGIN = { top: 16, right: 0, left: 0, bottom: 8 }
-export const Y_AXIS_WIDTH = 62
+export const CHART_MARGIN = { top: 16, right: 16, left: 8, bottom: 8 }
+export const Y_AXIS_WIDTH = 88
 export const X_AXIS_HEIGHT = 32
-
-export type ChartDisplayLayout = {
-  margin: { top: number; right: number; left: number; bottom: number }
-  yAxisWidth: number
-}
-
-const MOBILE_CHART_LAYOUT: ChartDisplayLayout = {
-  margin: { top: 8, right: 0, left: 0, bottom: 0 },
-  yAxisWidth: 50,
-}
-
-const DESKTOP_CHART_LAYOUT: ChartDisplayLayout = {
-  margin: CHART_MARGIN,
-  yAxisWidth: Y_AXIS_WIDTH,
-}
-
-export function useChartDisplayLayout() {
-  const [layout, setLayout] = useState<ChartDisplayLayout>(DESKTOP_CHART_LAYOUT)
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 639px)')
-    const apply = () => setLayout(mq.matches ? MOBILE_CHART_LAYOUT : DESKTOP_CHART_LAYOUT)
-    apply()
-    mq.addEventListener('change', apply)
-    return () => mq.removeEventListener('change', apply)
-  }, [])
-
-  return layout
-}
 
 export function useJournalStockChart(stockCode: string) {
   const priceQuery = useDailyPricesQuery(stockCode)
@@ -215,20 +186,13 @@ export function useJournalStockChart(stockCode: string) {
   }, [])
 
   const addSrLineAtPoint = useCallback(
-    (
-      clientX: number,
-      clientY: number,
-      rect: DOMRect,
-      chartHeight: number,
-      layout: ChartDisplayLayout = { margin: CHART_MARGIN, yAxisWidth: Y_AXIS_WIDTH },
-    ) => {
+    (clientX: number, clientY: number, rect: DOMRect, chartHeight: number) => {
       if (!srDrawKind) return
       const x = clientX - rect.left
       const y = clientY - rect.top
-      const { margin, yAxisWidth } = layout
-      const plotLeft = margin.left + yAxisWidth
-      const plotTop = margin.top
-      const plotBottom = chartHeight - margin.bottom - X_AXIS_HEIGHT
+      const plotLeft = CHART_MARGIN.left + Y_AXIS_WIDTH
+      const plotTop = CHART_MARGIN.top
+      const plotBottom = chartHeight - CHART_MARGIN.bottom - X_AXIS_HEIGHT
       if (x < plotLeft || y < plotTop || y > plotBottom) return
       const plotHeight = plotBottom - plotTop
       addSrLine(priceFromPlotY(y - plotTop, plotHeight, yDomain), srDrawKind)
