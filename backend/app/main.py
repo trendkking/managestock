@@ -13,7 +13,11 @@ from app.schemas.common import HealthResponse
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    ensure_admin_user()
+    try:
+        ensure_admin_user()
+    except Exception:
+        # 관리자 시드 실패로 API 전체가 죽지 않게 함
+        pass
     yield
 
 
