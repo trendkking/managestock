@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { LineChart } from 'lucide-react'
 import { StockSearchField } from '@/components/features/journal/StockSearchField'
 import {
@@ -29,12 +29,19 @@ export function JournalEntryFormDialog({ open, onOpenChange, entry, onSaved }: J
   const [journalDate, setJournalDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [stockCode, setStockCode] = useState('')
   const [stockName, setStockName] = useState('')
-  const [reason, setReason] = useState('')
   const [side, setSide] = useState<JournalEntrySide>('buy')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  /** 사유는 비제어 입력 — 타이핑마다 차트 리렌더를 막기 위함 */
+  const [reasonResetKey, setReasonResetKey] = useState(0)
+  const [reasonDefault, setReasonDefault] = useState('')
+  const reasonRef = useRef('')
 
   const chart = useJournalStockChart(stockCode)
+  const previewMarker = useMemo(
+    () => ({ date: journalDate, side }),
+    [journalDate, side],
+  )
 
   useEffect(() => {
     if (!open) return
@@ -42,21 +49,25 @@ export function JournalEntryFormDialog({ open, onOpenChange, entry, onSaved }: J
       setJournalDate(entry.journalDate)
       setStockCode(entry.stockCode)
       setStockName(entry.stockName)
-      setReason(entry.reason)
+      setReasonDefault(entry.reason)
+      reasonRef.current = entry.reason
       setSide(entry.side)
     } else {
       setJournalDate(new Date().toISOString().slice(0, 10))
       setStockCode('')
       setStockName('')
-      setReason('')
+      setReasonDefault('')
+      reasonRef.current = ''
       setSide('buy')
     }
+    setReasonResetKey((k) => k + 1)
     setError('')
   }, [open, entry])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!stockCode.trim() || !stockName.trim() || !reason.trim()) {
+    const reason = reasonRef.current.trim()
+    if (!stockCode.trim() || !stockName.trim() || !reason) {
       setError('날짜, 종목(검색 후 선택), 사유를 모두 입력해 주세요.')
       return
     }
@@ -67,7 +78,7 @@ export function JournalEntryFormDialog({ open, onOpenChange, entry, onSaved }: J
       stockCode: stockCode.trim(),
       stockName: stockName.trim(),
       side,
-      reason: reason.trim(),
+      reason,
     }
     try {
       if (isEdit && entry) {
@@ -140,9 +151,12 @@ export function JournalEntryFormDialog({ open, onOpenChange, entry, onSaved }: J
               <div>
                 <Label htmlFor="journal-reason">사유</Label>
                 <Textarea
+                  key={reasonResetKey}
                   id="journal-reason"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
+                  defaultValue={reasonDefault}
+                  onChange={(e) => {
+                    reasonRef.current = e.target.value
+                  }}
                   className="mt-1 min-h-[100px]"
                   placeholder="매수·매도 근거, 시장 상황, 손절 계획 등"
                   required
@@ -161,7 +175,7 @@ export function JournalEntryFormDialog({ open, onOpenChange, entry, onSaved }: J
                   <JournalStockChartView
                     chart={chart}
                     height={300}
-                    previewMarker={{ date: journalDate, side, reason: reason.trim() || undefined }}
+                    previewMarker={previewMarker}
                   />
                   <JournalSrLinesControls chart={chart} compact />
                 </>
