@@ -26,17 +26,22 @@ apiClient.interceptors.response.use(
 
       const requestUrl = String(error.config?.url ?? '')
       // 로그인/회원가입 실패는 폼에서 처리 — 페이지를 강제 이동하지 않음
-      if (requestUrl.includes('/auth/login') || requestUrl.includes('/auth/register')) {
+      if (/\/auth\/(login|register)(?:\?|$)/.test(requestUrl) || requestUrl.endsWith('/auth/login') || requestUrl.endsWith('/auth/register')) {
         return Promise.reject(error)
       }
 
       useAuthStore.getState().logout()
+
+      // 관리자 영역은 절대 일반 /login 으로 보내지 않음
       if (path.startsWith('/admin')) {
         if (path !== '/admin') {
-          window.location.href = '/admin'
+          window.location.assign('/admin')
         }
-      } else if (path !== '/login') {
-        window.location.href = '/login'
+        return Promise.reject(error)
+      }
+
+      if (path !== '/login') {
+        window.location.assign('/login')
       }
     }
     return Promise.reject(error)

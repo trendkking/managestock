@@ -11,6 +11,7 @@ from decimal import Decimal
 
 from sqlalchemy import select
 
+from app.bootstrap import ensure_admin_user
 from app.database import SessionLocal
 from app.models import (
     Account,
@@ -26,45 +27,20 @@ from app.models import (
     Trade,
     User,
 )
-from app.utils.auth_email import ADMIN_EMAIL
 from app.utils.security import hash_password
 from app.utils.time import utc_now
-
-
-def ensure_admin_user(db) -> None:
-    now = utc_now()
-    admin = db.scalar(select(User).where(User.email == ADMIN_EMAIL))
-    if admin:
-        admin.nickname = "admin"
-        admin.password_hash = hash_password("123")
-        admin.role = "admin"
-        admin.updated_at = now
-        print("  - 관리자 계정 갱신: admin / 123")
-    else:
-        db.add(
-            User(
-                nickname="admin",
-                email=ADMIN_EMAIL,
-                password_hash=hash_password("123"),
-                role="admin",
-                show_nickname_public=True,
-                created_at=now,
-                updated_at=now,
-            )
-        )
-        print("  - 관리자 계정 생성: admin / 123 (로그인 ID: admin)")
 
 
 def seed() -> None:
     db = SessionLocal()
     try:
-        ensure_admin_user(db)
-        db.flush()
+        ensure_admin_user()
 
         existing = db.scalar(select(User).where(User.email == "test@gmail.com"))
         if existing:
             db.commit()
             print("시드 데이터가 이미 존재합니다. (test@gmail.com)")
+            print("  - 관리자 로그인: admin / 123")
             return
 
         # --- 사용자 ---

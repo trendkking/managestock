@@ -5,6 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.bootstrap import ensure_admin_user
 from app.config import settings
 from app.routers import accounts, admin, auth, brokers, competitions, dashboard, journal_entries, journal_rule_memo, journals, market, seo
 from app.schemas.common import HealthResponse
@@ -12,6 +13,7 @@ from app.schemas.common import HealthResponse
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    ensure_admin_user()
     yield
 
 
