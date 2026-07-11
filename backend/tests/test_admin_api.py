@@ -2,14 +2,13 @@
 
 import uuid
 
-import pytest
 from fastapi.testclient import TestClient
 
-from app.utils.auth_email import ADMIN_EMAIL
+from app.utils.auth_email import ADMIN_PASSWORD
 
 
 def _admin_token(client: TestClient) -> str:
-    r = client.post("/api/auth/login", json={"email": "admin", "password": "123"})
+    r = client.post("/api/auth/login", json={"email": "admin", "password": ADMIN_PASSWORD})
     assert r.status_code == 200, r.text
     return r.json()["accessToken"]
 

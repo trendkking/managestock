@@ -40,7 +40,7 @@ def seed() -> None:
         if existing:
             db.commit()
             print("시드 데이터가 이미 존재합니다. (test@gmail.com)")
-            print("  - 관리자 로그인: admin / 123")
+            print("  - 관리자 로그인: admin / (ADMIN_PASSWORD)")
             return
 
         # --- 사용자 ---
@@ -317,7 +317,7 @@ def seed() -> None:
         db.commit()
         print("시드 데이터 삽입 완료")
         print("  - test@gmail.com / 123")
-        print("  - admin / 123 (관리자)")
+        print("  - admin / (설정된 ADMIN_PASSWORD)")
         print("  - 계좌 2건, 보유종목 3건, 매매 4건")
         print("  - 매매일지 3건, 대회 3건, 참가 1건")
     except Exception:

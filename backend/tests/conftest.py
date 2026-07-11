@@ -12,7 +12,7 @@ from app.database import Base
 from app.dependencies import get_db
 from app.main import app
 from app.models import Competition, User
-from app.utils.auth_email import ADMIN_EMAIL
+from app.utils.auth_email import ADMIN_EMAIL, ADMIN_PASSWORD
 from app.utils.security import hash_password
 from app.utils.time import utc_now
 
@@ -33,7 +33,7 @@ def db_session() -> Generator[Session, None, None]:
         User(
             nickname="admin",
             email=ADMIN_EMAIL,
-            password_hash=hash_password("123"),
+            password_hash=hash_password(ADMIN_PASSWORD),
             role="admin",
             show_nickname_public=True,
             created_at=now,

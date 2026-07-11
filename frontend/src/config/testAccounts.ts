@@ -23,7 +23,7 @@ export const TEST_ACCOUNT: TestAccount = {
 /** 관리자 계정 (Mock · API 로그인 ID: admin) */
 export const ADMIN_ACCOUNT: TestAccount = {
   email: 'admin',
-  password: '123',
+  password: 'Wnlrdlsp38~',
   user: {
     id: 0,
     nickname: 'admin',

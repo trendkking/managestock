@@ -4,14 +4,13 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input, Label } from '@/components/ui/Input'
 import { LOGO_SRC } from '@/components/brand/Logo'
-import { ADMIN_ACCOUNT } from '@/config/testAccounts'
 import { useAuthStore } from '@/stores/authStore'
 
 export default function AdminLoginPage() {
   const navigate = useNavigate()
   const login = useAuthStore((s) => s.login)
   const [username, setUsername] = useState('admin')
-  const [password, setPassword] = useState('123')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,10 +72,6 @@ export default function AdminLoginPage() {
                 관리자 로그인
               </Button>
             </form>
-
-            <p className="mt-4 text-center text-xs text-slate-500">
-              기본 계정: {ADMIN_ACCOUNT.email} / {ADMIN_ACCOUNT.password}
-            </p>
 
             <p className="mt-6 text-center text-sm text-slate-400">
               <Link to="/" className="text-red-400 hover:underline">

@@ -8,17 +8,15 @@ from sqlalchemy import select
 
 from app.database import SessionLocal
 from app.models import User
-from app.utils.auth_email import ADMIN_EMAIL
+from app.utils.auth_email import ADMIN_EMAIL, ADMIN_PASSWORD
 from app.utils.security import hash_password
 from app.utils.time import utc_now
 
 logger = logging.getLogger(__name__)
 
-ADMIN_PASSWORD = "123"
-
 
 def ensure_admin_user() -> None:
-    """관리자 계정(admin / 123)이 항상 로그인 가능하도록 생성·갱신."""
+    """관리자 계정(admin)이 설정된 비밀번호로 로그인 가능하도록 생성·갱신."""
     db = SessionLocal()
     try:
         now = utc_now()
@@ -29,7 +27,6 @@ def ensure_admin_user() -> None:
             admin.password_hash = password_hash
             admin.role = "admin"
             admin.updated_at = now
-            # nickname 충돌 시에만 유지
             taken = db.scalar(
                 select(User).where(User.nickname == "admin", User.id != admin.id)
             )
@@ -50,7 +47,7 @@ def ensure_admin_user() -> None:
                 )
             )
         db.commit()
-        logger.info("Admin account ensured (login id: admin / password: 123)")
+        logger.info("Admin account ensured (login id: admin)")
     except Exception:
         db.rollback()
         logger.exception("Failed to ensure admin user")
