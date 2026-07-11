@@ -52,7 +52,8 @@ export default function JournalChartPage() {
   const [selectedId, setSelectedId] = useState<number | null>(
     entryParam ? Number(entryParam) : entries[0]?.id ?? null,
   )
-  const [editOpen, setEditOpen] = useState(false)
+  const [formOpen, setFormOpen] = useState(false)
+  const [formMode, setFormMode] = useState<'create' | 'edit'>('edit')
 
   const stockName = chart.chartMeta?.stockName ?? entries[0]?.stockName ?? stockCode
   const region = chart.region
@@ -92,6 +93,16 @@ export default function JournalChartPage() {
     setSearchParams({ entry: String(entry.id) })
   }
 
+  const openCreateForStock = () => {
+    setFormMode('create')
+    setFormOpen(true)
+  }
+
+  const openEditSelected = () => {
+    setFormMode('edit')
+    setFormOpen(true)
+  }
+
   if (!stockCode) {
     return (
       <div className="py-20 text-center text-slate-500">
@@ -113,8 +124,8 @@ export default function JournalChartPage() {
         title={`${stockName} 차트`}
         description={`${stockCode} · ${CHART_INITIAL_VISIBLE_BARS}봉(약 ${CHART_VISIBLE_MONTHS}개월) · 기록 ${entries.length}건`}
         action={
-          <Button variant="outline" size="sm" onClick={() => navigate('/journal')}>
-            <Plus className="h-4 w-4" /> 기록 추가
+          <Button variant="outline" size="sm" onClick={openCreateForStock}>
+            <Plus className="h-4 w-4" /> 이 종목에 추가
           </Button>
         }
       />
@@ -155,7 +166,7 @@ export default function JournalChartPage() {
                         {selectedEntry.side === 'buy' ? '매수' : '매도'}
                       </Badge>
                     </div>
-                    <Button type="button" variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                    <Button type="button" variant="outline" size="sm" onClick={openEditSelected}>
                       <Pencil className="h-4 w-4" /> 수정
                     </Button>
                   </div>
@@ -204,9 +215,13 @@ export default function JournalChartPage() {
       })()}
 
       <JournalEntryFormDialog
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        entry={selectedEntry ?? null}
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        entry={formMode === 'edit' ? selectedEntry ?? null : null}
+        defaultStock={
+          formMode === 'create' ? { code: stockCode, name: stockName } : null
+        }
+        submitLabel={formMode === 'create' ? '저장' : undefined}
         onSaved={(entry) => {
           if (entry.stockCode !== stockCode) {
             navigate(`/journal/chart/${encodeURIComponent(entry.stockCode)}?entry=${entry.id}`)

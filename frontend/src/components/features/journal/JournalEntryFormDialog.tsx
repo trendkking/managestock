@@ -18,10 +18,20 @@ type JournalEntryFormDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   entry?: JournalEntry | null
+  /** 새 기록 작성 시 종목 미리 채우기 (차트 화면 등) */
+  defaultStock?: { code: string; name: string } | null
+  submitLabel?: string
   onSaved?: (entry: JournalEntry) => void
 }
 
-export function JournalEntryFormDialog({ open, onOpenChange, entry, onSaved }: JournalEntryFormDialogProps) {
+export function JournalEntryFormDialog({
+  open,
+  onOpenChange,
+  entry,
+  defaultStock,
+  submitLabel,
+  onSaved,
+}: JournalEntryFormDialogProps) {
   const isEdit = !!entry
   const addJournalEntry = useDataStore((s) => s.addJournalEntry)
   const updateJournalEntry = useDataStore((s) => s.updateJournalEntry)
@@ -54,15 +64,15 @@ export function JournalEntryFormDialog({ open, onOpenChange, entry, onSaved }: J
       setSide(entry.side)
     } else {
       setJournalDate(new Date().toISOString().slice(0, 10))
-      setStockCode('')
-      setStockName('')
+      setStockCode(defaultStock?.code ?? '')
+      setStockName(defaultStock?.name ?? '')
       setReasonDefault('')
       reasonRef.current = ''
       setSide('buy')
     }
     setReasonResetKey((k) => k + 1)
     setError('')
-  }, [open, entry])
+  }, [open, entry, defaultStock?.code, defaultStock?.name])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -195,7 +205,11 @@ export function JournalEntryFormDialog({ open, onOpenChange, entry, onSaved }: J
               취소
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? (isEdit ? '수정 중...' : '저장 중...') : isEdit ? '수정' : '저장 후 차트 보기'}
+              {saving
+                ? isEdit
+                  ? '수정 중...'
+                  : '저장 중...'
+                : submitLabel ?? (isEdit ? '수정' : '저장 후 차트 보기')}
             </Button>
           </div>
         </form>
