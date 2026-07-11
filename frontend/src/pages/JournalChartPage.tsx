@@ -125,7 +125,7 @@ export default function JournalChartPage() {
         description={`${stockCode} · ${CHART_INITIAL_VISIBLE_BARS}봉(약 ${CHART_VISIBLE_MONTHS}개월) · 기록 ${entries.length}건`}
         action={
           <Button variant="outline" size="sm" onClick={openCreateForStock}>
-            <Plus className="h-4 w-4" /> 이 종목에 추가
+            <Plus className="h-4 w-4" /> 매매내역 추가
           </Button>
         }
       />
