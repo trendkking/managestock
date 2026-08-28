@@ -27,12 +27,18 @@ export const CHART_MARGIN = { top: 16, right: 16, left: 8, bottom: 8 }
 export const Y_AXIS_WIDTH = 88
 export const X_AXIS_HEIGHT = 32
 
-export function useJournalStockChart(stockCode: string) {
+export function useJournalStockChart(
+  stockCode: string,
+  options?: { defaultVisibleMa?: MaPeriod[]; enableSrLines?: boolean },
+) {
+  const enableSrLines = options?.enableSrLines ?? true
   const priceQuery = useDailyPricesQuery(stockCode)
 
   const [usingFallback, setUsingFallback] = useState(false)
   const [fallbackPriceData, setFallbackPriceData] = useState<DailyPricePoint[]>([])
-  const [visibleMa, setVisibleMa] = useState<Set<MaPeriod>>(() => new Set(MA_PERIODS))
+  const [visibleMa, setVisibleMa] = useState<Set<MaPeriod>>(
+    () => new Set(options?.defaultVisibleMa ?? MA_PERIODS),
+  )
   const [srLines, setSrLines] = useState<SrLine[]>([])
   const [srDrawKind, setSrDrawKind] = useState<SrLineKind | null>(null)
   const [viewport, setViewport] = useState<ChartViewport>({
@@ -74,8 +80,8 @@ export function useJournalStockChart(stockCode: string) {
       setViewport({ start: 0, count: CHART_INITIAL_VISIBLE_BARS })
       return
     }
-    setSrLines(loadSrLines(stockCode))
-  }, [stockCode])
+    setSrLines(enableSrLines ? loadSrLines(stockCode) : [])
+  }, [enableSrLines, stockCode])
 
   useEffect(() => {
     if (!stockCode) return
@@ -147,15 +153,16 @@ export function useJournalStockChart(stockCode: string) {
 
   const persistSrLines = useCallback(
     (lines: SrLine[]) => {
+      if (!enableSrLines) return
       setSrLines(lines)
       if (stockCode) saveSrLines(stockCode, lines)
     },
-    [stockCode],
+    [enableSrLines, stockCode],
   )
 
   const addSrLine = useCallback(
     (price: number, kind: SrLineKind) => {
-      if (!Number.isFinite(price) || price <= 0 || !stockCode) return
+      if (!enableSrLines || !Number.isFinite(price) || price <= 0 || !stockCode) return
       setSrLines((prev) => {
         const next = [...prev, createSrLine(price, kind)]
         saveSrLines(stockCode, next)
