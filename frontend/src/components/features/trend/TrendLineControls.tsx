@@ -8,16 +8,22 @@ type TrendLineControlsProps = {
 
 const ITEMS: { key: keyof TrendLineVisibility; label: string; color: string; hint: string }[] = [
   {
+    key: 'finalTrend',
+    label: '최종 추세선',
+    color: '#16a34a',
+    hint: '종가·고저 추세선 사이',
+  },
+  {
     key: 'closeTrend',
     label: '종가 추세선',
-    color: '#0f172a',
-    hint: '첫·마지막 캔들 종가',
+    color: '#94a3b8',
+    hint: '첫·마지막 종가',
   },
   {
     key: 'extremeTrend',
     label: '고저 추세선',
-    color: '#9333ea',
-    hint: '최고가·최저가 캔들',
+    color: '#94a3b8',
+    hint: '최고가·최저가',
   },
 ]
 

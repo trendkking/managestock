@@ -56,6 +56,7 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
   const [trendLineVisibility, setTrendLineVisibility] = useState<TrendLineVisibility>({
     closeTrend: true,
     extremeTrend: true,
+    finalTrend: true,
   })
   const chart = useJournalStockChart(stockCode, {
     enableSrLines: false,

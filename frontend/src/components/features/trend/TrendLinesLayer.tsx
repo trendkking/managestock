@@ -1,8 +1,8 @@
 import { useXAxisScale, useYAxisScale } from 'recharts'
 import type { VisibleTrendLines, TrendLineSegment } from '@/lib/trendAnalysis/trendLines'
 
-const CLOSE_TREND_COLOR = '#0f172a'
-const EXTREME_TREND_COLOR = '#9333ea'
+const HELPER_TREND_COLOR = '#94a3b8'
+const FINAL_TREND_COLOR = '#16a34a'
 
 function plotPoint(
   xScale: NonNullable<ReturnType<typeof useXAxisScale>>,
@@ -16,13 +16,20 @@ function plotPoint(
   return { x, y }
 }
 
+type SegmentStyle = {
+  stroke: string
+  strokeWidth: number
+  strokeDasharray?: string
+  label?: string
+  showDots?: boolean
+  opacity?: number
+}
+
 function renderSegment(
   xScale: NonNullable<ReturnType<typeof useXAxisScale>>,
   yScale: NonNullable<ReturnType<typeof useYAxisScale>>,
   segment: TrendLineSegment,
-  stroke: string,
-  strokeDasharray: string,
-  label: string,
+  style: SegmentStyle,
 ) {
   const from = plotPoint(xScale, yScale, segment.from.date, segment.from.price)
   const to = plotPoint(xScale, yScale, segment.to.date, segment.to.price)
@@ -32,29 +39,36 @@ function renderSegment(
   const labelY = (from.y + to.y) / 2 - 8
 
   return (
-    <g key={label} aria-label={label}>
+    <g key={style.label ?? `${segment.from.date}-${segment.to.date}`} aria-label={style.label}>
       <line
         x1={from.x}
         y1={from.y}
         x2={to.x}
         y2={to.y}
-        stroke={stroke}
-        strokeWidth={2}
-        strokeDasharray={strokeDasharray}
+        stroke={style.stroke}
+        strokeWidth={style.strokeWidth}
+        strokeDasharray={style.strokeDasharray}
         strokeLinecap="round"
+        opacity={style.opacity ?? 1}
       />
-      <circle cx={from.x} cy={from.y} r={3} fill={stroke} />
-      <circle cx={to.x} cy={to.y} r={3} fill={stroke} />
-      <text
-        x={labelX}
-        y={labelY}
-        textAnchor="middle"
-        fill={stroke}
-        fontSize={10}
-        fontWeight={600}
-      >
-        {label}
-      </text>
+      {style.showDots && (
+        <>
+          <circle cx={from.x} cy={from.y} r={2.5} fill={style.stroke} opacity={style.opacity ?? 1} />
+          <circle cx={to.x} cy={to.y} r={2.5} fill={style.stroke} opacity={style.opacity ?? 1} />
+        </>
+      )}
+      {style.label && (
+        <text
+          x={labelX}
+          y={labelY}
+          textAnchor="middle"
+          fill={style.stroke}
+          fontSize={10}
+          fontWeight={700}
+        >
+          {style.label}
+        </text>
+      )}
     </g>
   )
 }
@@ -69,12 +83,24 @@ export function TrendLinesLayer({ lines }: TrendLinesLayerProps) {
   const yScale = useYAxisScale()
   if (!xScale || !yScale) return null
 
+  const helperStyle: SegmentStyle = {
+    stroke: HELPER_TREND_COLOR,
+    strokeWidth: 1,
+    strokeDasharray: '5 4',
+    opacity: 0.75,
+  }
+
   return (
     <g className="recharts-trend-lines-layer">
-      {lines.closeTrend &&
-        renderSegment(xScale, yScale, lines.closeTrend, CLOSE_TREND_COLOR, '7 4', '종가 추세')}
-      {lines.extremeTrend &&
-        renderSegment(xScale, yScale, lines.extremeTrend, EXTREME_TREND_COLOR, '4 3', '고저 추세')}
+      {lines.closeTrend && renderSegment(xScale, yScale, lines.closeTrend, helperStyle)}
+      {lines.extremeTrend && renderSegment(xScale, yScale, lines.extremeTrend, helperStyle)}
+      {lines.finalTrend &&
+        renderSegment(xScale, yScale, lines.finalTrend, {
+          stroke: FINAL_TREND_COLOR,
+          strokeWidth: 2.5,
+          label: '최종 추세',
+          showDots: true,
+        })}
     </g>
   )
 }
