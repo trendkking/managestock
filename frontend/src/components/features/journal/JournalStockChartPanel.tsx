@@ -11,6 +11,7 @@ import {
 } from 'recharts'
 import { Loader2 } from 'lucide-react'
 import { CandlestickSeries } from '@/components/features/journal/CandlestickLayer'
+import { TrendLinesLayer } from '@/components/features/trend/TrendLinesLayer'
 import {
   CHART_MARGIN,
   X_AXIS_HEIGHT,
@@ -33,6 +34,11 @@ import {
   dateFromPlotX,
   plotXFromCandleIndex,
 } from '@/lib/journalStockChart'
+import {
+  computeVisibleTrendLines,
+  filterVisibleTrendLines,
+  type TrendLineVisibility,
+} from '@/lib/trendAnalysis/trendLines'
 import type { JournalEntrySide } from '@/types'
 import { formatCurrency } from '@/utils'
 import { Trash2 } from 'lucide-react'
@@ -272,6 +278,8 @@ type JournalStockChartViewProps = {
   /** false면 차트 위에서 휠만으로 확대·축소 (추세분석 등) */
   wheelZoomRequiresModifier?: boolean
   hintStyle?: 'journal' | 'trend'
+  /** 설정 시 보이는 구간 기준 추세선 표시 (추세분석) */
+  trendLineVisibility?: TrendLineVisibility
 }
 
 export function JournalStockChartView({
@@ -285,6 +293,7 @@ export function JournalStockChartView({
   enablePanZoom = true,
   wheelZoomRequiresModifier = true,
   hintStyle = 'journal',
+  trendLineVisibility,
 }: JournalStockChartViewProps) {
   const chartWrapRef = useRef<HTMLDivElement>(null)
   const [isPanning, setIsPanning] = useState(false)
@@ -319,6 +328,12 @@ export function JournalStockChartView({
     srLines,
     priceData,
   } = chart
+
+  const visibleTrendLines = useMemo(() => {
+    if (!trendLineVisibility) return null
+    const computed = computeVisibleTrendLines(visibleChartData)
+    return filterVisibleTrendLines(computed, trendLineVisibility)
+  }, [trendLineVisibility, visibleChartData])
 
   const plotWidth = useCallback(() => {
     const rect = chartWrapRef.current?.getBoundingClientRect()
@@ -740,6 +755,7 @@ export function JournalStockChartView({
                 name={`${period}일`}
               />
             ))}
+            {visibleTrendLines && <TrendLinesLayer lines={visibleTrendLines} />}
             {srLines.map((line) => (
               <ReferenceLine
                 key={line.id}

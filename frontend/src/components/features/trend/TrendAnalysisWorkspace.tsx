@@ -7,7 +7,9 @@ import {
 import { StockSearchField } from '@/components/features/journal/StockSearchField'
 import { useJournalStockChart } from '@/components/features/journal/useJournalStockChart'
 import { TREND_CHART_FETCH_MONTHS, TREND_CHART_INITIAL_VISIBLE_BARS } from '@/lib/journalStockChart'
+import { TrendLineControls } from '@/components/features/trend/TrendLineControls'
 import { TrendIndicatorPanels } from '@/components/features/trend/TrendIndicatorPanels'
+import type { TrendLineVisibility } from '@/lib/trendAnalysis/trendLines'
 import { Card, CardContent } from '@/components/ui/Card'
 
 type SelectedStock = { code: string; name: string }
@@ -51,6 +53,10 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
   const [stockCode, setStockCode] = useState(initialStock?.code ?? '')
   const [stockName, setStockName] = useState(initialStock?.name ?? '')
   const chartHeight = useChartHeight()
+  const [trendLineVisibility, setTrendLineVisibility] = useState<TrendLineVisibility>({
+    closeTrend: true,
+    extremeTrend: true,
+  })
   const chart = useJournalStockChart(stockCode, {
     enableSrLines: false,
     initialVisibleBars: TREND_CHART_INITIAL_VISIBLE_BARS,
@@ -68,6 +74,10 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
     setStockCode(stock.code)
     setStockName(stock.name)
     if (stock.code) saveLastStock(stock)
+  }
+
+  const toggleTrendLine = (key: keyof TrendLineVisibility) => {
+    setTrendLineVisibility((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
   return (
@@ -102,6 +112,12 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
               className="border-b border-slate-100 pb-4"
             />
 
+            <TrendLineControls
+              visibility={trendLineVisibility}
+              onToggle={toggleTrendLine}
+              className="border-b border-slate-100 pb-4"
+            />
+
             <TrendIndicatorPanels placement="above" context={indicatorContext} />
 
             <JournalStockChartView
@@ -110,6 +126,7 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
               enablePanZoom
               wheelZoomRequiresModifier={false}
               hintStyle="trend"
+              trendLineVisibility={trendLineVisibility}
             />
 
             <TrendIndicatorPanels placement="below" context={indicatorContext} />
