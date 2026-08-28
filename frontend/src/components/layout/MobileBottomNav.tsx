@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom'
-import { BookOpen, Trophy, Wallet } from 'lucide-react'
+import { BookOpen, TrendingUp, Trophy, Wallet } from 'lucide-react'
 import { cn } from '@/utils'
 
 const tabs = [
   { to: '/accounts', label: '계좌', icon: Wallet },
   { to: '/journal', label: '일지', icon: BookOpen },
+  { to: '/trend-analysis', label: '추세', icon: TrendingUp },
   { to: '/competitions', label: '대회', icon: Trophy },
 ]
 

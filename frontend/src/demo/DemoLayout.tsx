@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
-import { ArrowRight, BookOpen, Sparkles, Trophy, Wallet } from 'lucide-react'
+import { ArrowRight, BookOpen, Sparkles, TrendingUp, Trophy, Wallet } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/utils'
@@ -7,6 +7,7 @@ import { cn } from '@/utils'
 const navItems = [
   { to: '/demo/accounts', label: '계좌', icon: Wallet },
   { to: '/demo/journal', label: '매매일지', icon: BookOpen },
+  { to: '/demo/trend-analysis', label: '추세분석', icon: TrendingUp },
   { to: '/demo/competitions', label: '경연 대회', icon: Trophy },
 ]
 

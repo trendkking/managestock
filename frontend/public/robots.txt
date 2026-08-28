@@ -13,6 +13,8 @@ Disallow: /accounts
 Disallow: /accounts/
 Disallow: /journal
 Disallow: /journal/
+Disallow: /trend-analysis
+Disallow: /trend-analysis/
 Disallow: /competitions
 Disallow: /competitions/
 Disallow: /profile

@@ -83,6 +83,12 @@ export function resolveSeoMeta(pathname: string): SeoMeta {
         keywords: '매매일지, 주식, 투자일지',
         noindex: true,
       }
+    case '/trend-analysis':
+      return {
+        title: `추세분석 | ${SITE_NAME}`,
+        description: '종목·시장 추세를 분석하고 매매 아이디어를 검증합니다.',
+        noindex: true,
+      }
     case '/competitions':
       return {
         title: `경연 대회 | ${SITE_NAME}`,

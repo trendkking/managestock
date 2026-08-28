@@ -17,6 +17,7 @@ import JournalListPage from '@/pages/JournalListPage'
 import JournalChartPage from '@/pages/JournalChartPage'
 import CompetitionsPage from '@/pages/CompetitionsPage'
 import CompetitionDetailPage from '@/pages/CompetitionDetailPage'
+import TrendAnalysisPage from '@/pages/TrendAnalysisPage'
 import ProfilePage from '@/pages/ProfilePage'
 import AdminLoginPage from '@/pages/admin/AdminLoginPage'
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage'
@@ -30,6 +31,7 @@ import DemoJournalPage from '@/pages/demo/DemoJournalPage'
 import DemoJournalChartPage from '@/pages/demo/DemoJournalChartPage'
 import DemoCompetitionsPage from '@/pages/demo/DemoCompetitionsPage'
 import DemoCompetitionDetailPage from '@/pages/demo/DemoCompetitionDetailPage'
+import DemoTrendAnalysisPage from '@/pages/demo/DemoTrendAnalysisPage'
 import AdminCompetitionsPage from '@/pages/admin/AdminCompetitionsPage'
 
 const queryClient = new QueryClient({
@@ -56,6 +58,7 @@ export default function App() {
             <Route path="accounts/:id" element={<DemoAccountDetailPage />} />
             <Route path="journal" element={<DemoJournalPage />} />
             <Route path="journal/chart/:stockCode" element={<DemoJournalChartPage />} />
+            <Route path="trend-analysis" element={<DemoTrendAnalysisPage />} />
             <Route path="competitions" element={<DemoCompetitionsPage />} />
             <Route path="competitions/:id" element={<DemoCompetitionDetailPage />} />
           </Route>
@@ -71,6 +74,7 @@ export default function App() {
             <Route path="/accounts/:id" element={<AccountDetailPage />} />
             <Route path="/journal" element={<JournalListPage />} />
             <Route path="/journal/chart/:stockCode" element={<JournalChartPage />} />
+            <Route path="/trend-analysis" element={<TrendAnalysisPage />} />
             <Route path="/competitions" element={<CompetitionsPage />} />
             <Route path="/competitions/:id" element={<CompetitionDetailPage />} />
             <Route path="/profile" element={<ProfilePage />} />

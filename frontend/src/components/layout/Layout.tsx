@@ -5,6 +5,7 @@ import {
   LogOut,
   Menu,
   Settings,
+  TrendingUp,
   Trophy,
   Wallet,
   X,
@@ -18,6 +19,7 @@ import { cn } from '@/utils'
 const navItems = [
   { to: '/accounts', label: '계좌', icon: Wallet },
   { to: '/journal', label: '매매일지', icon: BookOpen },
+  { to: '/trend-analysis', label: '추세분석', icon: TrendingUp },
   { to: '/competitions', label: '경연 대회', icon: Trophy },
 ]
 
