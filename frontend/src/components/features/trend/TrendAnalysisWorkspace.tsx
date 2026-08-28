@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { LineChart } from 'lucide-react'
+import {
+  JournalMaControls,
+  JournalStockChartView,
+} from '@/components/features/journal/JournalStockChartPanel'
 import { StockSearchField } from '@/components/features/journal/StockSearchField'
-import { JournalStockChartView } from '@/components/features/journal/JournalStockChartPanel'
 import { useJournalStockChart } from '@/components/features/journal/useJournalStockChart'
 import { TrendIndicatorPanels } from '@/components/features/trend/TrendIndicatorPanels'
 import { Card, CardContent } from '@/components/ui/Card'
@@ -12,11 +15,29 @@ type TrendAnalysisWorkspaceProps = {
   defaultStock?: SelectedStock
 }
 
+const LAST_STOCK_KEY = 'bullslong-trend-last-stock'
+
+function loadLastStock(): SelectedStock | null {
+  try {
+    const raw = sessionStorage.getItem(LAST_STOCK_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as SelectedStock
+    if (parsed.code && parsed.name) return parsed
+  } catch {
+    /* ignore */
+  }
+  return null
+}
+
+function saveLastStock(stock: SelectedStock) {
+  sessionStorage.setItem(LAST_STOCK_KEY, JSON.stringify(stock))
+}
+
 function useChartHeight() {
   const [height, setHeight] = useState(400)
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 639px)')
-    const apply = () => setHeight(mq.matches ? 320 : 420)
+    const apply = () => setHeight(mq.matches ? 340 : 440)
     apply()
     mq.addEventListener('change', apply)
     return () => mq.removeEventListener('change', apply)
@@ -25,10 +46,11 @@ function useChartHeight() {
 }
 
 export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceProps) {
-  const [stockCode, setStockCode] = useState(defaultStock?.code ?? '')
-  const [stockName, setStockName] = useState(defaultStock?.name ?? '')
+  const initialStock = defaultStock ?? loadLastStock()
+  const [stockCode, setStockCode] = useState(initialStock?.code ?? '')
+  const [stockName, setStockName] = useState(initialStock?.name ?? '')
   const chartHeight = useChartHeight()
-  const chart = useJournalStockChart(stockCode, { defaultVisibleMa: [], enableSrLines: false })
+  const chart = useJournalStockChart(stockCode, { enableSrLines: false })
 
   const displayName = chart.chartMeta?.stockName ?? stockName ?? stockCode
   const indicatorContext = {
@@ -37,25 +59,26 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
     chart,
   }
 
-  return (
-    <div className="space-y-4">
-      <Card>
-        <CardContent className="pt-6">
-          <StockSearchField
-            stockCode={stockCode}
-            stockName={stockName}
-            onSelect={(stock) => {
-              setStockCode(stock.code)
-              setStockName(stock.name)
-            }}
-          />
-        </CardContent>
-      </Card>
+  const selectStock = (stock: SelectedStock) => {
+    setStockCode(stock.code)
+    setStockName(stock.name)
+    if (stock.code) saveLastStock(stock)
+  }
 
-      {stockCode ? (
-        <Card className="overflow-hidden">
-          <CardContent className="space-y-4 pt-6">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
+  return (
+    <Card className="overflow-hidden">
+      <CardContent className="space-y-4 pt-6">
+        <StockSearchField
+          stockCode={stockCode}
+          stockName={stockName}
+          onSelect={(stock) => {
+            selectStock({ code: stock.code, name: stock.name })
+          }}
+        />
+
+        {stockCode ? (
+          <>
+            <div className="flex flex-wrap items-baseline justify-between gap-2 border-t border-slate-100 pt-4">
               <div>
                 <h2 className="text-lg font-bold text-slate-900">{displayName}</h2>
                 <p className="text-xs text-slate-500">{stockCode}</p>
@@ -68,21 +91,26 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
               )}
             </div>
 
+            <JournalMaControls
+              visibleMa={chart.visibleMa}
+              toggleMa={chart.toggleMa}
+              className="border-b border-slate-100 pb-4"
+            />
+
             <TrendIndicatorPanels placement="above" context={indicatorContext} />
 
             <JournalStockChartView chart={chart} height={chartHeight} enablePanZoom />
 
             <TrendIndicatorPanels placement="below" context={indicatorContext} />
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardContent className="flex min-h-[280px] flex-col items-center justify-center py-12 text-center">
+          </>
+        ) : (
+          <div className="flex min-h-[360px] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/80 py-12 text-center">
             <LineChart className="mb-3 h-10 w-10 text-slate-300" />
-            <p className="text-sm text-slate-500">종목을 검색해 선택하면 차트가 표시됩니다.</p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+            <p className="text-sm font-medium text-slate-600">종목을 검색해 선택하세요</p>
+            <p className="mt-1 text-xs text-slate-500">선택하면 이 영역에 일봉 차트가 표시됩니다</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
