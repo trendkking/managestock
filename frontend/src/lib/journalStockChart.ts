@@ -101,6 +101,8 @@ export const CHART_INITIAL_VISIBLE_BARS = 160
 /** 추세분석 기본 구간 — 60거래일(약 3개월) */
 export const TREND_CHART_VISIBLE_MONTHS = 3
 export const TREND_CHART_INITIAL_VISIBLE_BARS = 60
+/** 추세분석 시세 조회 — 화면·이동평균(120) 계산용 여유 포함 */
+export const TREND_CHART_FETCH_MONTHS = 7
 
 /** 120일선이 화면 전체에 그려지도록 표시 구간 + 여유 조회 */
 export const CHART_FETCH_MONTHS = 14

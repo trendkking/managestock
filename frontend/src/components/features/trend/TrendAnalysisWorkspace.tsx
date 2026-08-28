@@ -6,7 +6,7 @@ import {
 } from '@/components/features/journal/JournalStockChartPanel'
 import { StockSearchField } from '@/components/features/journal/StockSearchField'
 import { useJournalStockChart } from '@/components/features/journal/useJournalStockChart'
-import { TREND_CHART_INITIAL_VISIBLE_BARS } from '@/lib/journalStockChart'
+import { TREND_CHART_FETCH_MONTHS, TREND_CHART_INITIAL_VISIBLE_BARS } from '@/lib/journalStockChart'
 import { TrendIndicatorPanels } from '@/components/features/trend/TrendIndicatorPanels'
 import { Card, CardContent } from '@/components/ui/Card'
 
@@ -54,6 +54,7 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
   const chart = useJournalStockChart(stockCode, {
     enableSrLines: false,
     initialVisibleBars: TREND_CHART_INITIAL_VISIBLE_BARS,
+    fetchMonths: TREND_CHART_FETCH_MONTHS,
   })
 
   const displayName = chart.chartMeta?.stockName ?? stockName ?? stockCode

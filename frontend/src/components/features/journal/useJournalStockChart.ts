@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { getApiErrorMessage } from '@/lib/apiError'
 import { useDailyPricesQuery } from '@/hooks/useDailyPrices'
 import {
@@ -33,11 +33,13 @@ export function useJournalStockChart(
     defaultVisibleMa?: MaPeriod[]
     enableSrLines?: boolean
     initialVisibleBars?: number
+    fetchMonths?: number
   },
 ) {
   const enableSrLines = options?.enableSrLines ?? true
   const initialVisibleBars = options?.initialVisibleBars ?? CHART_INITIAL_VISIBLE_BARS
-  const priceQuery = useDailyPricesQuery(stockCode)
+  const fetchMonths = options?.fetchMonths ?? CHART_FETCH_MONTHS
+  const priceQuery = useDailyPricesQuery(stockCode, fetchMonths)
 
   const [usingFallback, setUsingFallback] = useState(false)
   const [fallbackPriceData, setFallbackPriceData] = useState<DailyPricePoint[]>([])
@@ -46,10 +48,11 @@ export function useJournalStockChart(
   )
   const [srLines, setSrLines] = useState<SrLine[]>([])
   const [srDrawKind, setSrDrawKind] = useState<SrLineKind | null>(null)
-  const [viewport, setViewport] = useState<ChartViewport>({
+  const viewportEpochRef = useRef('')
+  const [viewport, setViewport] = useState<ChartViewport>(() => ({
     start: 0,
     count: initialVisibleBars,
-  })
+  }))
 
   const apiPriceData = useMemo(
     () =>
@@ -77,35 +80,46 @@ export function useJournalStockChart(
   const region = chartMeta?.region
   const dataLength = priceData.length
 
+  const priceDataEpoch = useMemo(() => {
+    if (priceData.length === 0) return `${stockCode}:empty`
+    const first = priceData[0]?.date ?? ''
+    const last = priceData[priceData.length - 1]?.date ?? ''
+    return `${stockCode}:${priceData.length}:${first}:${last}`
+  }, [stockCode, priceData])
+
   useEffect(() => {
     if (!stockCode) {
       setUsingFallback(false)
       setFallbackPriceData([])
       setSrLines([])
       setViewport({ start: 0, count: initialVisibleBars })
+      viewportEpochRef.current = ''
       return
     }
     setSrLines(enableSrLines ? loadSrLines(stockCode) : [])
+    viewportEpochRef.current = ''
   }, [enableSrLines, initialVisibleBars, stockCode])
 
   useEffect(() => {
     if (!stockCode) return
     if (priceQuery.isError) {
       setUsingFallback(true)
-      setFallbackPriceData(buildPlaceholderDailyPrices(stockCode, CHART_FETCH_MONTHS))
+      setFallbackPriceData(buildPlaceholderDailyPrices(stockCode, fetchMonths))
       return
     }
     setUsingFallback(false)
     setFallbackPriceData([])
-  }, [stockCode, priceQuery.isError])
+  }, [fetchMonths, stockCode, priceQuery.isError])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (priceData.length === 0) {
       setViewport({ start: 0, count: initialVisibleBars })
       return
     }
+    if (viewportEpochRef.current === priceDataEpoch) return
+    viewportEpochRef.current = priceDataEpoch
     setViewport(initialChartViewport(priceData.length, initialVisibleBars))
-  }, [initialVisibleBars, stockCode, priceData.length])
+  }, [initialVisibleBars, priceData.length, priceDataEpoch])
 
   const chartData = useMemo(
     () => appendMovingAverages(priceData, MA_PERIODS),
