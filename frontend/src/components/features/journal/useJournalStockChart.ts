@@ -29,9 +29,14 @@ export const X_AXIS_HEIGHT = 32
 
 export function useJournalStockChart(
   stockCode: string,
-  options?: { defaultVisibleMa?: MaPeriod[]; enableSrLines?: boolean },
+  options?: {
+    defaultVisibleMa?: MaPeriod[]
+    enableSrLines?: boolean
+    initialVisibleBars?: number
+  },
 ) {
   const enableSrLines = options?.enableSrLines ?? true
+  const initialVisibleBars = options?.initialVisibleBars ?? CHART_INITIAL_VISIBLE_BARS
   const priceQuery = useDailyPricesQuery(stockCode)
 
   const [usingFallback, setUsingFallback] = useState(false)
@@ -43,7 +48,7 @@ export function useJournalStockChart(
   const [srDrawKind, setSrDrawKind] = useState<SrLineKind | null>(null)
   const [viewport, setViewport] = useState<ChartViewport>({
     start: 0,
-    count: CHART_INITIAL_VISIBLE_BARS,
+    count: initialVisibleBars,
   })
 
   const apiPriceData = useMemo(
@@ -77,11 +82,11 @@ export function useJournalStockChart(
       setUsingFallback(false)
       setFallbackPriceData([])
       setSrLines([])
-      setViewport({ start: 0, count: CHART_INITIAL_VISIBLE_BARS })
+      setViewport({ start: 0, count: initialVisibleBars })
       return
     }
     setSrLines(enableSrLines ? loadSrLines(stockCode) : [])
-  }, [enableSrLines, stockCode])
+  }, [enableSrLines, initialVisibleBars, stockCode])
 
   useEffect(() => {
     if (!stockCode) return
@@ -96,11 +101,11 @@ export function useJournalStockChart(
 
   useEffect(() => {
     if (priceData.length === 0) {
-      setViewport({ start: 0, count: CHART_INITIAL_VISIBLE_BARS })
+      setViewport({ start: 0, count: initialVisibleBars })
       return
     }
-    setViewport(initialChartViewport(priceData.length))
-  }, [stockCode, priceData.length])
+    setViewport(initialChartViewport(priceData.length, initialVisibleBars))
+  }, [initialVisibleBars, stockCode, priceData.length])
 
   const chartData = useMemo(
     () => appendMovingAverages(priceData, MA_PERIODS),

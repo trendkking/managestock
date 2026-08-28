@@ -98,6 +98,10 @@ export const MA_PERIODS = [5, 20, 40, 60, 120] as const
 export const CHART_VISIBLE_MONTHS = 8
 export const CHART_INITIAL_VISIBLE_BARS = 160
 
+/** 추세분석 기본 구간 — 60거래일(약 3개월) */
+export const TREND_CHART_VISIBLE_MONTHS = 3
+export const TREND_CHART_INITIAL_VISIBLE_BARS = 60
+
 /** 120일선이 화면 전체에 그려지도록 표시 구간 + 여유 조회 */
 export const CHART_FETCH_MONTHS = 14
 export const CHART_MIN_VISIBLE_BARS = 20
@@ -108,9 +112,12 @@ export function clampChart(n: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, n))
 }
 
-export function initialChartViewport(dataLength: number): ChartViewport {
-  if (dataLength <= 0) return { start: 0, count: CHART_INITIAL_VISIBLE_BARS }
-  const count = Math.min(CHART_INITIAL_VISIBLE_BARS, dataLength)
+export function initialChartViewport(
+  dataLength: number,
+  initialVisibleBars = CHART_INITIAL_VISIBLE_BARS,
+): ChartViewport {
+  if (dataLength <= 0) return { start: 0, count: initialVisibleBars }
+  const count = Math.min(initialVisibleBars, dataLength)
   return { start: Math.max(0, dataLength - count), count }
 }
 

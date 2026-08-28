@@ -6,6 +6,7 @@ import {
 } from '@/components/features/journal/JournalStockChartPanel'
 import { StockSearchField } from '@/components/features/journal/StockSearchField'
 import { useJournalStockChart } from '@/components/features/journal/useJournalStockChart'
+import { TREND_CHART_INITIAL_VISIBLE_BARS } from '@/lib/journalStockChart'
 import { TrendIndicatorPanels } from '@/components/features/trend/TrendIndicatorPanels'
 import { Card, CardContent } from '@/components/ui/Card'
 
@@ -50,7 +51,10 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
   const [stockCode, setStockCode] = useState(initialStock?.code ?? '')
   const [stockName, setStockName] = useState(initialStock?.name ?? '')
   const chartHeight = useChartHeight()
-  const chart = useJournalStockChart(stockCode, { enableSrLines: false })
+  const chart = useJournalStockChart(stockCode, {
+    enableSrLines: false,
+    initialVisibleBars: TREND_CHART_INITIAL_VISIBLE_BARS,
+  })
 
   const displayName = chart.chartMeta?.stockName ?? stockName ?? stockCode
   const indicatorContext = {
@@ -104,6 +108,7 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
               height={chartHeight}
               enablePanZoom
               wheelZoomRequiresModifier={false}
+              hintStyle="trend"
             />
 
             <TrendIndicatorPanels placement="below" context={indicatorContext} />

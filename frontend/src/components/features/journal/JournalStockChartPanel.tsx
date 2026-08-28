@@ -21,6 +21,8 @@ import {
   clampChart,
   CHART_INITIAL_VISIBLE_BARS,
   CHART_VISIBLE_MONTHS,
+  TREND_CHART_INITIAL_VISIBLE_BARS,
+  TREND_CHART_VISIBLE_MONTHS,
   formatChartAxisWon,
   MA_COLORS,
   MA_PERIODS,
@@ -269,6 +271,7 @@ type JournalStockChartViewProps = {
   enablePanZoom?: boolean
   /** false면 차트 위에서 휠만으로 확대·축소 (추세분석 등) */
   wheelZoomRequiresModifier?: boolean
+  hintStyle?: 'journal' | 'trend'
 }
 
 export function JournalStockChartView({
@@ -281,6 +284,7 @@ export function JournalStockChartView({
   showMarkerHint = false,
   enablePanZoom = true,
   wheelZoomRequiresModifier = true,
+  hintStyle = 'journal',
 }: JournalStockChartViewProps) {
   const chartWrapRef = useRef<HTMLDivElement>(null)
   const [isPanning, setIsPanning] = useState(false)
@@ -555,16 +559,24 @@ export function JournalStockChartView({
   return (
     <>
       <p className="mb-3 text-xs text-slate-500">
-        {usingFallback
-          ? '시세 API 연결에 실패해 참고용 캔들을 표시합니다.'
-          : chartMeta
-            ? `일봉 캔들 · ${chartMeta.source} · 기본 ${CHART_INITIAL_VISIBLE_BARS}봉(약 ${CHART_VISIBLE_MONTHS}개월)`
-            : '시세를 불러오는 중…'}
-        {enablePanZoom &&
+        {hintStyle === 'trend' ? (
+          <>
+            일봉 기본 {TREND_CHART_INITIAL_VISIBLE_BARS}캔들 (약 {TREND_CHART_VISIBLE_MONTHS}개월)
+            {enablePanZoom && ' · 휠 / 핀치: 확대·축소 · 드래그: 좌우 이동'}
+          </>
+        ) : usingFallback ? (
+          '시세 API 연결에 실패해 참고용 캔들을 표시합니다.'
+        ) : chartMeta ? (
+          `일봉 캔들 · ${chartMeta.source} · 기본 ${CHART_INITIAL_VISIBLE_BARS}봉(약 ${CHART_VISIBLE_MONTHS}개월)`
+        ) : (
+          '시세를 불러오는 중…'
+        )}
+        {hintStyle === 'journal' &&
+          enablePanZoom &&
           (wheelZoomRequiresModifier
             ? ' · Ctrl+휠 / 핀치: 확대·축소 · 드래그: 좌우 이동'
             : ' · 휠 / 핀치: 확대·축소 · 드래그: 좌우 이동')}
-        {visibleDateRange && (
+        {hintStyle === 'journal' && visibleDateRange && (
           <span className="ml-1 tabular-nums text-slate-400">
             ({visibleDateRange.from} ~ {visibleDateRange.to})
           </span>
