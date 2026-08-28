@@ -267,6 +267,8 @@ type JournalStockChartViewProps = {
   previewMarker?: { date: string; side: JournalEntrySide; reason?: string }
   showMarkerHint?: boolean
   enablePanZoom?: boolean
+  /** false면 차트 위에서 휠만으로 확대·축소 (추세분석 등) */
+  wheelZoomRequiresModifier?: boolean
 }
 
 export function JournalStockChartView({
@@ -278,6 +280,7 @@ export function JournalStockChartView({
   previewMarker,
   showMarkerHint = false,
   enablePanZoom = true,
+  wheelZoomRequiresModifier = true,
 }: JournalStockChartViewProps) {
   const chartWrapRef = useRef<HTMLDivElement>(null)
   const [isPanning, setIsPanning] = useState(false)
@@ -325,7 +328,7 @@ export function JournalStockChartView({
     if (!el) return
 
     const onWheel = (e: WheelEvent) => {
-      if (!e.ctrlKey && !e.metaKey) return
+      if (wheelZoomRequiresModifier && !e.ctrlKey && !e.metaKey) return
       e.preventDefault()
       const rect = el.getBoundingClientRect()
       const plotLeft = CHART_MARGIN.left + Y_AXIS_WIDTH
@@ -336,7 +339,7 @@ export function JournalStockChartView({
 
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
-  }, [enablePanZoom, zoomViewport])
+  }, [enablePanZoom, wheelZoomRequiresModifier, zoomViewport])
 
   const plotBounds = useCallback(
     (rect: DOMRect) => ({
@@ -557,7 +560,10 @@ export function JournalStockChartView({
           : chartMeta
             ? `일봉 캔들 · ${chartMeta.source} · 기본 ${CHART_INITIAL_VISIBLE_BARS}봉(약 ${CHART_VISIBLE_MONTHS}개월)`
             : '시세를 불러오는 중…'}
-        {enablePanZoom && ' · Ctrl+휠 / 핀치: 확대·축소 · 드래그: 좌우 이동'}
+        {enablePanZoom &&
+          (wheelZoomRequiresModifier
+            ? ' · Ctrl+휠 / 핀치: 확대·축소 · 드래그: 좌우 이동'
+            : ' · 휠 / 핀치: 확대·축소 · 드래그: 좌우 이동')}
         {visibleDateRange && (
           <span className="ml-1 tabular-nums text-slate-400">
             ({visibleDateRange.from} ~ {visibleDateRange.to})

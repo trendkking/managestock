@@ -99,7 +99,12 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
 
             <TrendIndicatorPanels placement="above" context={indicatorContext} />
 
-            <JournalStockChartView chart={chart} height={chartHeight} enablePanZoom />
+            <JournalStockChartView
+              chart={chart}
+              height={chartHeight}
+              enablePanZoom
+              wheelZoomRequiresModifier={false}
+            />
 
             <TrendIndicatorPanels placement="below" context={indicatorContext} />
           </>
