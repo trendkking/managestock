@@ -694,6 +694,27 @@ export function JournalStockChartView({
               tick={{ fontSize: 10, fill: '#475569' }}
               width={Y_AXIS_WIDTH}
             />
+            {/* 이평 전부 해제 시에도 Y축 스케일 유지 (Recharts useYAxisScale) */}
+            <Line
+              type="monotone"
+              dataKey="high"
+              stroke="transparent"
+              strokeWidth={0}
+              dot={false}
+              activeDot={false}
+              isAnimationActive={false}
+              legendType="none"
+            />
+            <Line
+              type="monotone"
+              dataKey="low"
+              stroke="transparent"
+              strokeWidth={0}
+              dot={false}
+              activeDot={false}
+              isAnimationActive={false}
+              legendType="none"
+            />
             <CandlestickSeries data={visibleChartData} region={region} />
             {MA_PERIODS.filter((period) => visibleMa.has(period)).map((period) => (
               <Line
