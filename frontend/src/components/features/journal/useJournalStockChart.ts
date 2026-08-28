@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getApiErrorMessage } from '@/lib/apiError'
 import { useDailyPricesQuery } from '@/hooks/useDailyPrices'
 import {
@@ -48,11 +48,8 @@ export function useJournalStockChart(
   )
   const [srLines, setSrLines] = useState<SrLine[]>([])
   const [srDrawKind, setSrDrawKind] = useState<SrLineKind | null>(null)
-  const viewportEpochRef = useRef('')
-  const [viewport, setViewport] = useState<ChartViewport>(() => ({
-    start: 0,
-    count: initialVisibleBars,
-  }))
+  const [viewportOverride, setViewportOverride] = useState<ChartViewport | null>(null)
+  const [viewportOverrideEpoch, setViewportOverrideEpoch] = useState('')
 
   const apiPriceData = useMemo(
     () =>
@@ -92,13 +89,14 @@ export function useJournalStockChart(
       setUsingFallback(false)
       setFallbackPriceData([])
       setSrLines([])
-      setViewport({ start: 0, count: initialVisibleBars })
-      viewportEpochRef.current = ''
+      setViewportOverride(null)
+      setViewportOverrideEpoch('')
       return
     }
     setSrLines(enableSrLines ? loadSrLines(stockCode) : [])
-    viewportEpochRef.current = ''
-  }, [enableSrLines, initialVisibleBars, stockCode])
+    setViewportOverride(null)
+    setViewportOverrideEpoch('')
+  }, [enableSrLines, stockCode])
 
   useEffect(() => {
     if (!stockCode) return
@@ -111,15 +109,28 @@ export function useJournalStockChart(
     setFallbackPriceData([])
   }, [fetchMonths, stockCode, priceQuery.isError])
 
-  useLayoutEffect(() => {
-    if (priceData.length === 0) {
-      setViewport({ start: 0, count: initialVisibleBars })
-      return
-    }
-    if (viewportEpochRef.current === priceDataEpoch) return
-    viewportEpochRef.current = priceDataEpoch
-    setViewport(initialChartViewport(priceData.length, initialVisibleBars))
+  const defaultViewport = useMemo(() => {
+    if (priceData.length === 0) return { start: 0, count: initialVisibleBars }
+    return initialChartViewport(priceData.length, initialVisibleBars)
   }, [initialVisibleBars, priceData.length, priceDataEpoch])
+
+  const viewport = useMemo(() => {
+    if (viewportOverride && viewportOverrideEpoch === priceDataEpoch) {
+      return viewportOverride
+    }
+    return defaultViewport
+  }, [defaultViewport, priceDataEpoch, viewportOverride, viewportOverrideEpoch])
+
+  const viewportRef = useRef(viewport)
+  viewportRef.current = viewport
+
+  const applyViewport = useCallback(
+    (next: ChartViewport) => {
+      setViewportOverrideEpoch(priceDataEpoch)
+      setViewportOverride(next)
+    },
+    [priceDataEpoch],
+  )
 
   const chartData = useMemo(
     () => appendMovingAverages(priceData, MA_PERIODS),
@@ -148,26 +159,26 @@ export function useJournalStockChart(
 
   const zoomViewport = useCallback(
     (factor: number, anchorRatio: number) => {
-      setViewport((prev) => zoomChartViewport(prev, factor, anchorRatio, dataLength))
+      applyViewport(zoomChartViewport(viewportRef.current, factor, anchorRatio, dataLength))
     },
-    [dataLength],
+    [applyViewport, dataLength],
   )
 
   const panViewport = useCallback(
     (deltaBars: number) => {
-      setViewport((prev) => panChartViewport(prev, deltaBars, dataLength))
+      applyViewport(panChartViewport(viewportRef.current, deltaBars, dataLength))
     },
-    [dataLength],
+    [applyViewport, dataLength],
   )
 
   const panToStart = useCallback(
     (start: number) => {
-      setViewport((prev) => ({
-        ...prev,
-        start: clampChart(start, 0, Math.max(0, dataLength - prev.count)),
-      }))
+      applyViewport({
+        ...viewportRef.current,
+        start: clampChart(start, 0, Math.max(0, dataLength - viewportRef.current.count)),
+      })
     },
-    [dataLength],
+    [applyViewport, dataLength],
   )
 
   const persistSrLines = useCallback(
@@ -238,6 +249,7 @@ export function useJournalStockChart(
     visibleChartData,
     visiblePriceData,
     viewport,
+    visibleBarCount: visibleChartData.length,
     visibleDateRange,
     zoomViewport,
     panViewport,
