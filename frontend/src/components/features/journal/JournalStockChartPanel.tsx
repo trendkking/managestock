@@ -336,7 +336,28 @@ export function JournalStockChartView({
     return filterVisibleTrendLines(computed, trendLineVisibility)
   }, [trendLineVisibility, visibleChartData, viewport])
 
-  const trendViewportKey = `${viewport.start}:${viewport.count}:${visibleChartData[0]?.date ?? ''}:${visibleChartData.at(-1)?.date ?? ''}`
+  const chartRenderData = useMemo(() => {
+    if (!visibleTrendLines) return visibleChartData
+    const lastIndex = visibleChartData.length - 1
+    if (lastIndex < 1) return visibleChartData
+
+    const { closeTrend, finalTrend } = visibleTrendLines
+    return visibleChartData.map((row, index) => ({
+      ...row,
+      closeTrendLine:
+        closeTrend && index === 0
+          ? closeTrend.from.price
+          : closeTrend && index === lastIndex
+            ? closeTrend.to.price
+            : null,
+      finalTrendLine:
+        finalTrend && index === 0
+          ? finalTrend.from.price
+          : finalTrend && index === lastIndex
+            ? finalTrend.to.price
+            : null,
+    }))
+  }, [visibleChartData, visibleTrendLines])
 
   const plotWidth = useCallback(() => {
     const rect = chartWrapRef.current?.getBoundingClientRect()
@@ -699,7 +720,7 @@ export function JournalStockChartView({
           </svg>
         )}
         <ResponsiveContainer width="100%" height={height} initialDimension={{ width: 520, height }}>
-          <ComposedChart data={visibleChartData} margin={CHART_MARGIN}>
+          <ComposedChart data={chartRenderData} margin={CHART_MARGIN}>
             <defs>
               <filter id="journal-marker-shadow" x="-50%" y="-50%" width="200%" height="200%">
                 <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#0f172a" floodOpacity="0.35" />
@@ -745,7 +766,21 @@ export function JournalStockChartView({
               isAnimationActive={false}
               legendType="none"
             />
-            <CandlestickSeries data={visibleChartData} region={region} />
+            <CandlestickSeries data={chartRenderData} region={region} />
+            {visibleTrendLines?.closeTrend && (
+              <Line
+                type="linear"
+                dataKey="closeTrendLine"
+                stroke="#64748b"
+                strokeWidth={1.5}
+                strokeDasharray="7 5"
+                dot={false}
+                activeDot={false}
+                connectNulls
+                isAnimationActive={false}
+                legendType="none"
+              />
+            )}
             {MA_PERIODS.filter((period) => visibleMa.has(period)).map((period) => (
               <Line
                 key={period}
@@ -758,8 +793,21 @@ export function JournalStockChartView({
                 name={`${period}일`}
               />
             ))}
-            {visibleTrendLines && (
-              <TrendLinesChartLayer key={trendViewportKey} lines={visibleTrendLines} />
+            {visibleTrendLines?.extremeTrend && (
+              <TrendLinesChartLayer extremeTrend={visibleTrendLines.extremeTrend} />
+            )}
+            {visibleTrendLines?.finalTrend && (
+              <Line
+                type="linear"
+                dataKey="finalTrendLine"
+                stroke="#16a34a"
+                strokeWidth={2.5}
+                dot={false}
+                activeDot={false}
+                connectNulls
+                isAnimationActive={false}
+                legendType="none"
+              />
             )}
             {srLines.map((line) => (
               <ReferenceLine
