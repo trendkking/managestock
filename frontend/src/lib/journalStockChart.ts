@@ -261,6 +261,18 @@ export function priceFromPlotY(
   return max - ratio * (max - min)
 }
 
+/** 가격 → 플롯 Y (priceFromPlotY 역함수) */
+export function plotYFromPrice(
+  price: number,
+  plotHeight: number,
+  domain: [number, number],
+): number {
+  const [min, max] = domain
+  if (max === min) return plotHeight / 2
+  const ratio = (max - price) / (max - min)
+  return Math.min(plotHeight, Math.max(0, ratio * plotHeight))
+}
+
 /** 차트 플롯 영역 X → 가장 가까운 캔들 날짜 */
 export function dateFromPlotX(
   plotX: number,
