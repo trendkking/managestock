@@ -16,13 +16,13 @@ const ITEMS: { key: keyof TrendLineVisibility; label: string; color: string; hin
   {
     key: 'closeTrend',
     label: '종가 추세선',
-    color: '#94a3b8',
+    color: '#64748b',
     hint: '첫·마지막 종가',
   },
   {
     key: 'extremeTrend',
     label: '고저 추세선',
-    color: '#94a3b8',
+    color: '#64748b',
     hint: '최고가·최저가',
   },
 ]

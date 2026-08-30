@@ -1,7 +1,7 @@
 import { useXAxisScale, useYAxisScale } from 'recharts'
 import type { VisibleTrendLines, TrendLineSegment } from '@/lib/trendAnalysis/trendLines'
 
-const HELPER_TREND_COLOR = '#94a3b8'
+const HELPER_TREND_COLOR = '#64748b'
 const FINAL_TREND_COLOR = '#16a34a'
 
 function plotPoint(
@@ -85,9 +85,9 @@ export function TrendLinesLayer({ lines }: TrendLinesLayerProps) {
 
   const helperStyle: SegmentStyle = {
     stroke: HELPER_TREND_COLOR,
-    strokeWidth: 1,
-    strokeDasharray: '5 4',
-    opacity: 0.75,
+    strokeWidth: 1.75,
+    strokeDasharray: '6 4',
+    opacity: 0.92,
   }
 
   return (
