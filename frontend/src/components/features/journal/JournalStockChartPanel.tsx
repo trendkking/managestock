@@ -11,7 +11,7 @@ import {
 } from 'recharts'
 import { Loader2 } from 'lucide-react'
 import { CandlestickSeries } from '@/components/features/journal/CandlestickLayer'
-import { TrendLinesOverlay } from '@/components/features/trend/TrendLinesOverlay'
+import { TrendLinesChartLayer } from '@/components/features/trend/TrendLinesChartLayer'
 import {
   CHART_MARGIN,
   X_AXIS_HEIGHT,
@@ -296,7 +296,6 @@ export function JournalStockChartView({
   trendLineVisibility,
 }: JournalStockChartViewProps) {
   const chartWrapRef = useRef<HTMLDivElement>(null)
-  const [chartWidth, setChartWidth] = useState(520)
   const [isPanning, setIsPanning] = useState(false)
   const isPanningRef = useRef(false)
   const [crosshair, setCrosshair] = useState<{
@@ -331,34 +330,11 @@ export function JournalStockChartView({
     viewport,
   } = chart
 
-  useEffect(() => {
-    if (!trendLineVisibility) return
-    const el = chartWrapRef.current
-    if (!el) return
-    const update = () => setChartWidth(el.clientWidth)
-    update()
-    const ro = new ResizeObserver(update)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [trendLineVisibility, height])
-
   const visibleTrendLines = useMemo(() => {
     if (!trendLineVisibility) return null
     const computed = computeVisibleTrendLines(visibleChartData)
     return filterVisibleTrendLines(computed, trendLineVisibility)
   }, [trendLineVisibility, visibleChartData, viewport])
-
-  const trendLinesLayout = useMemo(() => {
-    const plotLeft = CHART_MARGIN.left + Y_AXIS_WIDTH
-    const plotTop = CHART_MARGIN.top
-    const plotBottom = height - CHART_MARGIN.bottom - X_AXIS_HEIGHT
-    return {
-      plotLeft,
-      plotTop,
-      plotWidth: Math.max(1, chartWidth - plotLeft - CHART_MARGIN.right),
-      plotHeight: Math.max(1, plotBottom - plotTop),
-    }
-  }, [chartWidth, height])
 
   const trendViewportKey = `${viewport.start}:${viewport.count}:${visibleChartData[0]?.date ?? ''}:${visibleChartData.at(-1)?.date ?? ''}`
 
@@ -643,15 +619,6 @@ export function JournalStockChartView({
         onPointerLeave={handlePointerLeave}
         role="presentation"
       >
-        {visibleTrendLines && (
-          <TrendLinesOverlay
-            lines={visibleTrendLines}
-            dates={visibleChartData.map((row) => row.date)}
-            yDomain={yDomain}
-            layout={trendLinesLayout}
-            viewportKey={trendViewportKey}
-          />
-        )}
         {crosshair && !isPanning && (
           <svg
             className="pointer-events-none absolute inset-0 z-10 h-full w-full"
@@ -791,6 +758,9 @@ export function JournalStockChartView({
                 name={`${period}일`}
               />
             ))}
+            {visibleTrendLines && (
+              <TrendLinesChartLayer key={trendViewportKey} lines={visibleTrendLines} />
+            )}
             {srLines.map((line) => (
               <ReferenceLine
                 key={line.id}
