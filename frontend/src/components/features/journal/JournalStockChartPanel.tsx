@@ -280,6 +280,8 @@ type JournalStockChartViewProps = {
   hintStyle?: 'journal' | 'trend'
   /** 설정 시 보이는 구간 기준 추세선 표시 (추세분석) */
   trendLineVisibility?: TrendLineVisibility
+  /** 0=종가 추세 쪽, 1=고저 추세 쪽 */
+  finalTrendBlend?: number
 }
 
 export function JournalStockChartView({
@@ -294,6 +296,7 @@ export function JournalStockChartView({
   wheelZoomRequiresModifier = true,
   hintStyle = 'journal',
   trendLineVisibility,
+  finalTrendBlend = 0.5,
 }: JournalStockChartViewProps) {
   const chartWrapRef = useRef<HTMLDivElement>(null)
   const [isPanning, setIsPanning] = useState(false)
@@ -332,28 +335,35 @@ export function JournalStockChartView({
 
   const visibleTrendLines = useMemo(() => {
     if (!trendLineVisibility) return null
-    const computed = computeVisibleTrendLines(visibleChartData)
+    const computed = computeVisibleTrendLines(visibleChartData, { finalTrendBlend })
     return filterVisibleTrendLines(computed, trendLineVisibility)
-  }, [trendLineVisibility, visibleChartData, viewport])
+  }, [finalTrendBlend, trendLineVisibility, visibleChartData, viewport])
 
   const chartRenderData = useMemo(() => {
     if (!visibleTrendLines) return visibleChartData
-    const lastIndex = visibleChartData.length - 1
-    if (lastIndex < 1) return visibleChartData
 
     const { closeTrend, finalTrend } = visibleTrendLines
+    const closeFromIndex =
+      closeTrend != null ? visibleChartData.findIndex((row) => row.date === closeTrend.from.date) : -1
+    const closeToIndex =
+      closeTrend != null ? visibleChartData.findIndex((row) => row.date === closeTrend.to.date) : -1
+    const finalFromIndex =
+      finalTrend != null ? visibleChartData.findIndex((row) => row.date === finalTrend.from.date) : -1
+    const finalToIndex =
+      finalTrend != null ? visibleChartData.findIndex((row) => row.date === finalTrend.to.date) : -1
+
     return visibleChartData.map((row, index) => ({
       ...row,
       closeTrendLine:
-        closeTrend && index === 0
+        closeTrend && index === closeFromIndex
           ? closeTrend.from.price
-          : closeTrend && index === lastIndex
+          : closeTrend && index === closeToIndex
             ? closeTrend.to.price
             : null,
       finalTrendLine:
-        finalTrend && index === 0
+        finalTrend && index === finalFromIndex
           ? finalTrend.from.price
-          : finalTrend && index === lastIndex
+          : finalTrend && index === finalToIndex
             ? finalTrend.to.price
             : null,
     }))

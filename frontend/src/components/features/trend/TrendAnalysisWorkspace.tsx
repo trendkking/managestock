@@ -58,6 +58,7 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
     extremeTrend: true,
     finalTrend: true,
   })
+  const [finalTrendBlend, setFinalTrendBlend] = useState(0.5)
   const chart = useJournalStockChart(stockCode, {
     enableSrLines: false,
     initialVisibleBars: TREND_CHART_INITIAL_VISIBLE_BARS,
@@ -115,6 +116,8 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
 
             <TrendLineControls
               visibility={trendLineVisibility}
+              finalTrendBlend={finalTrendBlend}
+              onFinalTrendBlendChange={setFinalTrendBlend}
               onToggle={toggleTrendLine}
               className="border-b border-slate-100 pb-4"
             />
@@ -128,6 +131,7 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
               wheelZoomRequiresModifier={false}
               hintStyle="trend"
               trendLineVisibility={trendLineVisibility}
+              finalTrendBlend={finalTrendBlend}
             />
 
             <TrendIndicatorPanels placement="below" context={indicatorContext} />
