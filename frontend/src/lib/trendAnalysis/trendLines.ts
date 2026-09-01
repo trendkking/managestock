@@ -40,6 +40,11 @@ function priceAtIndex(
   return fromPrice + ((toPrice - fromPrice) * (atIdx - fromIdx)) / (toIdx - fromIdx)
 }
 
+function segmentSlope(fromIdx: number, fromPrice: number, toIdx: number, toPrice: number): number | null {
+  if (toIdx === fromIdx) return null
+  return (toPrice - fromPrice) / (toIdx - fromIdx)
+}
+
 /** 카테고리 축(캔들 순서) 기준 선형 보간 */
 export function interpolateSegmentAtDate(
   segment: TrendLineSegment,
@@ -65,14 +70,13 @@ export function findCloseExtremeTrendIntersection(
   const extremeToIdx = dates.indexOf(extremeTrend.to.date)
   if (closeFromIdx < 0 || closeToIdx < 0 || extremeFromIdx < 0 || extremeToIdx < 0) return null
 
-  const closeSlope =
-    closeToIdx === closeFromIdx
-      ? null
-      : (closeTrend.to.price - closeTrend.from.price) / (closeToIdx - closeFromIdx)
-  const extremeSlope =
-    extremeToIdx === extremeFromIdx
-      ? null
-      : (extremeTrend.to.price - extremeTrend.from.price) / (extremeToIdx - extremeFromIdx)
+  const closeSlope = segmentSlope(closeFromIdx, closeTrend.from.price, closeToIdx, closeTrend.to.price)
+  const extremeSlope = segmentSlope(
+    extremeFromIdx,
+    extremeTrend.from.price,
+    extremeToIdx,
+    extremeTrend.to.price,
+  )
 
   if (closeSlope == null || extremeSlope == null) return null
   if (Math.abs(closeSlope - extremeSlope) < 1e-12) return null
@@ -101,44 +105,57 @@ function indexToDate(idx: number, dates: readonly string[]): string {
   return dates[clamped] ?? dates[0]
 }
 
+function midpointPriceAtIndex(
+  closeTrend: TrendLineSegment,
+  extremeTrend: TrendLineSegment,
+  dates: readonly string[],
+  atIdx: number,
+): number {
+  const closeFromIdx = dates.indexOf(closeTrend.from.date)
+  const closeToIdx = dates.indexOf(closeTrend.to.date)
+  const extremeFromIdx = dates.indexOf(extremeTrend.from.date)
+  const extremeToIdx = dates.indexOf(extremeTrend.to.date)
+
+  const closePrice = priceAtIndex(
+    closeFromIdx,
+    closeTrend.from.price,
+    closeToIdx,
+    closeTrend.to.price,
+    atIdx,
+  )
+  const extremePrice = priceAtIndex(
+    extremeFromIdx,
+    extremeTrend.from.price,
+    extremeToIdx,
+    extremeTrend.to.price,
+    atIdx,
+  )
+
+  return (closePrice + extremePrice) / 2
+}
+
 /**
- * 종가·고저 추세선의 중간선.
- * 두 직선이 교차하면 반드시 그 교점을 지난다 (교점에서 종가=고저).
+ * 교점을 지나며 종가·고저 추세선 기울기의 산술 평균으로 그은 최종 추세선.
+ * 평행(교점 없음)일 때는 양 끝 중간값으로 대체.
  */
-function buildFinalTrendThroughIntersection(
+export function buildFinalTrendFromAverageSlopes(
   closeTrend: TrendLineSegment,
   extremeTrend: TrendLineSegment,
   dates: readonly string[],
   startIdx: number,
   endIdx: number,
 ): { segment: TrendLineSegment; intersection: TrendLinePoint | null } {
-  const closeAtStart = priceAtIndex(
-    dates.indexOf(closeTrend.from.date),
-    closeTrend.from.price,
-    dates.indexOf(closeTrend.to.date),
-    closeTrend.to.price,
-    startIdx,
-  )
-  const closeAtEnd = priceAtIndex(
-    dates.indexOf(closeTrend.from.date),
-    closeTrend.from.price,
-    dates.indexOf(closeTrend.to.date),
-    closeTrend.to.price,
-    endIdx,
-  )
-  const extremeAtStart = priceAtIndex(
-    dates.indexOf(extremeTrend.from.date),
+  const closeFromIdx = dates.indexOf(closeTrend.from.date)
+  const closeToIdx = dates.indexOf(closeTrend.to.date)
+  const extremeFromIdx = dates.indexOf(extremeTrend.from.date)
+  const extremeToIdx = dates.indexOf(extremeTrend.to.date)
+
+  const closeSlope = segmentSlope(closeFromIdx, closeTrend.from.price, closeToIdx, closeTrend.to.price)
+  const extremeSlope = segmentSlope(
+    extremeFromIdx,
     extremeTrend.from.price,
-    dates.indexOf(extremeTrend.to.date),
+    extremeToIdx,
     extremeTrend.to.price,
-    startIdx,
-  )
-  const extremeAtEnd = priceAtIndex(
-    dates.indexOf(extremeTrend.from.date),
-    extremeTrend.from.price,
-    dates.indexOf(extremeTrend.to.date),
-    extremeTrend.to.price,
-    endIdx,
   )
 
   const intersectionRaw = findCloseExtremeTrendIntersection(closeTrend, extremeTrend, dates)
@@ -146,18 +163,27 @@ function buildFinalTrendThroughIntersection(
     ? { date: indexToDate(intersectionRaw.idx, dates), price: intersectionRaw.price }
     : null
 
-  const segment: TrendLineSegment = {
-    from: {
-      date: dates[startIdx],
-      price: (closeAtStart + extremeAtStart) / 2,
-    },
-    to: {
-      date: dates[endIdx],
-      price: (closeAtEnd + extremeAtEnd) / 2,
-    },
+  const priceAt =
+    intersectionRaw && closeSlope != null && extremeSlope != null
+      ? (idx: number) => {
+          const finalSlope = (closeSlope + extremeSlope) / 2
+          return intersectionRaw.price + finalSlope * (idx - intersectionRaw.idx)
+        }
+      : (idx: number) => midpointPriceAtIndex(closeTrend, extremeTrend, dates, idx)
+
+  const startDate = dates[startIdx]
+  const endDate = dates[endIdx]
+  if (!startDate || !endDate) {
+    return { segment: { from: { date: '', price: 0 }, to: { date: '', price: 0 } }, intersection }
   }
 
-  return { segment, intersection }
+  return {
+    segment: {
+      from: { date: startDate, price: priceAt(startIdx) },
+      to: { date: endDate, price: priceAt(endIdx) },
+    },
+    intersection,
+  }
 }
 
 /** 현재 화면에 보이는 캔들 기준 추세선 좌표 */
@@ -189,7 +215,7 @@ export function computeVisibleTrendLines(data: ChartPricePoint[]): VisibleTrendL
     to: { date: data[minLowIndex].date, price: candleLow(data[minLowIndex]) },
   }
 
-  const { segment: finalTrend, intersection: trendIntersection } = buildFinalTrendThroughIntersection(
+  const { segment: finalTrend, intersection: trendIntersection } = buildFinalTrendFromAverageSlopes(
     closeTrend,
     extremeTrend,
     dates,
