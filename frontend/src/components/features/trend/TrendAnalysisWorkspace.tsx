@@ -59,6 +59,7 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
     finalTrend: true,
   })
   const chart = useJournalStockChart(stockCode, {
+    defaultVisibleMa: [],
     enableSrLines: false,
     initialVisibleBars: TREND_CHART_INITIAL_VISIBLE_BARS,
     fetchMonths: TREND_CHART_FETCH_MONTHS,

@@ -337,17 +337,13 @@ export function JournalStockChartView({
   }, [trendLineVisibility, visibleChartData, viewport])
 
   const chartRenderData = useMemo(() => {
-    if (!visibleTrendLines) return visibleChartData
+    if (!visibleTrendLines?.closeTrend) return visibleChartData
 
-    const { closeTrend, finalTrend } = visibleTrendLines
+    const { closeTrend } = visibleTrendLines
     const closeFromIndex =
       closeTrend != null ? visibleChartData.findIndex((row) => row.date === closeTrend.from.date) : -1
     const closeToIndex =
       closeTrend != null ? visibleChartData.findIndex((row) => row.date === closeTrend.to.date) : -1
-    const finalFromIndex =
-      finalTrend != null ? visibleChartData.findIndex((row) => row.date === finalTrend.from.date) : -1
-    const finalToIndex =
-      finalTrend != null ? visibleChartData.findIndex((row) => row.date === finalTrend.to.date) : -1
 
     return visibleChartData.map((row, index) => ({
       ...row,
@@ -356,12 +352,6 @@ export function JournalStockChartView({
           ? closeTrend.from.price
           : closeTrend && index === closeToIndex
             ? closeTrend.to.price
-            : null,
-      finalTrendLine:
-        finalTrend && index === finalFromIndex
-          ? finalTrend.from.price
-          : finalTrend && index === finalToIndex
-            ? finalTrend.to.price
             : null,
     }))
   }, [visibleChartData, visibleTrendLines])
@@ -800,22 +790,12 @@ export function JournalStockChartView({
                 name={`${period}일`}
               />
             ))}
-            {visibleTrendLines?.extremeTrend && (
-              <TrendLinesChartLayer extremeTrend={visibleTrendLines.extremeTrend} />
-            )}
-            {visibleTrendLines?.finalTrend && (
-              <Line
-                type="linear"
-                dataKey="finalTrendLine"
-                stroke="#16a34a"
-                strokeWidth={2.5}
-                dot={false}
-                activeDot={false}
-                connectNulls
-                isAnimationActive={false}
-                legendType="none"
+            {visibleTrendLines?.extremeTrend || visibleTrendLines?.finalTrend ? (
+              <TrendLinesChartLayer
+                extremeTrend={visibleTrendLines?.extremeTrend}
+                finalTrend={visibleTrendLines?.finalTrend}
               />
-            )}
+            ) : null}
             {srLines.map((line) => (
               <ReferenceLine
                 key={line.id}
