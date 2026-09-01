@@ -11,7 +11,7 @@ const ITEMS: { key: keyof TrendLineVisibility; label: string; color: string; hin
     key: 'finalTrend',
     label: '최종 추세선',
     color: '#16a34a',
-    hint: '종가·고저 중간',
+    hint: '종가·고저 교점',
   },
   {
     key: 'closeTrend',
