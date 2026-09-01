@@ -280,8 +280,6 @@ type JournalStockChartViewProps = {
   hintStyle?: 'journal' | 'trend'
   /** 설정 시 보이는 구간 기준 추세선 표시 (추세분석) */
   trendLineVisibility?: TrendLineVisibility
-  /** 0=종가 추세 쪽, 1=고저 추세 쪽 */
-  finalTrendBlend?: number
 }
 
 export function JournalStockChartView({
@@ -296,7 +294,6 @@ export function JournalStockChartView({
   wheelZoomRequiresModifier = true,
   hintStyle = 'journal',
   trendLineVisibility,
-  finalTrendBlend = 0.5,
 }: JournalStockChartViewProps) {
   const chartWrapRef = useRef<HTMLDivElement>(null)
   const [isPanning, setIsPanning] = useState(false)
@@ -335,9 +332,9 @@ export function JournalStockChartView({
 
   const visibleTrendLines = useMemo(() => {
     if (!trendLineVisibility) return null
-    const computed = computeVisibleTrendLines(visibleChartData, { finalTrendBlend })
+    const computed = computeVisibleTrendLines(visibleChartData)
     return filterVisibleTrendLines(computed, trendLineVisibility)
-  }, [finalTrendBlend, trendLineVisibility, visibleChartData, viewport])
+  }, [trendLineVisibility, visibleChartData, viewport])
 
   const chartRenderData = useMemo(() => {
     if (!visibleTrendLines) return visibleChartData

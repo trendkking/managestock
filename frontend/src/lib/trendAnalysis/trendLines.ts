@@ -11,8 +11,6 @@ export type VisibleTrendLines = {
   closeTrend: TrendLineSegment | null
   extremeTrend: TrendLineSegment | null
   finalTrend: TrendLineSegment | null
-  /** 고저 추세선 기준 가격 범위 (최종 추세선 클램프) */
-  priceBounds: { minLow: number; maxHigh: number } | null
 }
 
 export type TrendLineVisibility = {
@@ -21,21 +19,12 @@ export type TrendLineVisibility = {
   finalTrend: boolean
 }
 
-export type TrendLineComputeOptions = {
-  /** 0=종가 추세 쪽, 1=고저 추세 쪽 (기본 0.5) */
-  finalTrendBlend?: number
-}
-
 function candleHigh(point: ChartPricePoint): number {
   return point.high ?? Math.max(point.open ?? point.close, point.close)
 }
 
 function candleLow(point: ChartPricePoint): number {
   return point.low ?? Math.min(point.open ?? point.close, point.close)
-}
-
-function clamp01(value: number): number {
-  return Math.min(1, Math.max(0, value))
 }
 
 function clampPrice(price: number, minLow: number, maxHigh: number): number {
@@ -57,43 +46,22 @@ export function interpolateSegmentAtDate(
   return segment.from.price + t * (segment.to.price - segment.from.price)
 }
 
-/** 고저 추세선 양 끝 날짜(캔들 순서 기준 min~max) */
-function extremeDateRange(
-  extremeTrend: TrendLineSegment,
-  dates: readonly string[],
-): { startDate: string; endDate: string } | null {
-  const fromIdx = dates.indexOf(extremeTrend.from.date)
-  const toIdx = dates.indexOf(extremeTrend.to.date)
-  if (fromIdx < 0 || toIdx < 0) return null
-  const minIdx = Math.min(fromIdx, toIdx)
-  const maxIdx = Math.max(fromIdx, toIdx)
-  const startDate = dates[minIdx]
-  const endDate = dates[maxIdx]
-  if (!startDate || !endDate) return null
-  return { startDate, endDate }
-}
-
-function blendBetweenCloseAndExtreme(
+function midpointBetweenCloseAndExtreme(
   closePrice: number,
   extremePrice: number,
-  blend: number,
   minLow: number,
   maxHigh: number,
 ): number {
-  const raw = closePrice + blend * (extremePrice - closePrice)
+  const raw = (closePrice + extremePrice) / 2
   return clampPrice(raw, minLow, maxHigh)
 }
 
 /** 현재 화면에 보이는 캔들 기준 추세선 좌표 */
-export function computeVisibleTrendLines(
-  data: ChartPricePoint[],
-  options?: TrendLineComputeOptions,
-): VisibleTrendLines {
+export function computeVisibleTrendLines(data: ChartPricePoint[]): VisibleTrendLines {
   if (data.length < 2) {
-    return { closeTrend: null, extremeTrend: null, finalTrend: null, priceBounds: null }
+    return { closeTrend: null, extremeTrend: null, finalTrend: null }
   }
 
-  const blend = clamp01(options?.finalTrendBlend ?? 0.5)
   const first = data[0]
   const last = data[data.length - 1]
   const dates = data.map((d) => d.date)
@@ -118,24 +86,19 @@ export function computeVisibleTrendLines(
     to: { date: data[minLowIndex].date, price: minLow },
   }
 
-  const range = extremeDateRange(extremeTrend, dates)
-  if (!range) {
-    return { closeTrend, extremeTrend, finalTrend: null, priceBounds: { minLow, maxHigh } }
-  }
-
-  const closeAtStart = interpolateSegmentAtDate(closeTrend, range.startDate, dates)
-  const closeAtEnd = interpolateSegmentAtDate(closeTrend, range.endDate, dates)
-  const extremeAtStart = interpolateSegmentAtDate(extremeTrend, range.startDate, dates)
-  const extremeAtEnd = interpolateSegmentAtDate(extremeTrend, range.endDate, dates)
+  const closeAtStart = interpolateSegmentAtDate(closeTrend, first.date, dates)
+  const closeAtEnd = interpolateSegmentAtDate(closeTrend, last.date, dates)
+  const extremeAtStart = interpolateSegmentAtDate(extremeTrend, first.date, dates)
+  const extremeAtEnd = interpolateSegmentAtDate(extremeTrend, last.date, dates)
 
   const finalTrend: TrendLineSegment = {
     from: {
-      date: range.startDate,
-      price: blendBetweenCloseAndExtreme(closeAtStart, extremeAtStart, blend, minLow, maxHigh),
+      date: first.date,
+      price: midpointBetweenCloseAndExtreme(closeAtStart, extremeAtStart, minLow, maxHigh),
     },
     to: {
-      date: range.endDate,
-      price: blendBetweenCloseAndExtreme(closeAtEnd, extremeAtEnd, blend, minLow, maxHigh),
+      date: last.date,
+      price: midpointBetweenCloseAndExtreme(closeAtEnd, extremeAtEnd, minLow, maxHigh),
     },
   }
 
@@ -143,7 +106,6 @@ export function computeVisibleTrendLines(
     closeTrend,
     extremeTrend,
     finalTrend,
-    priceBounds: { minLow, maxHigh },
   }
 }
 
