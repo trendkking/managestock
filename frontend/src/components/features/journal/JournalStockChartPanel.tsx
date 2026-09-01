@@ -336,25 +336,7 @@ export function JournalStockChartView({
     return filterVisibleTrendLines(computed, trendLineVisibility)
   }, [trendLineVisibility, visibleChartData, viewport])
 
-  const chartRenderData = useMemo(() => {
-    if (!visibleTrendLines?.closeTrend) return visibleChartData
-
-    const { closeTrend } = visibleTrendLines
-    const closeFromIndex =
-      closeTrend != null ? visibleChartData.findIndex((row) => row.date === closeTrend.from.date) : -1
-    const closeToIndex =
-      closeTrend != null ? visibleChartData.findIndex((row) => row.date === closeTrend.to.date) : -1
-
-    return visibleChartData.map((row, index) => ({
-      ...row,
-      closeTrendLine:
-        closeTrend && index === closeFromIndex
-          ? closeTrend.from.price
-          : closeTrend && index === closeToIndex
-            ? closeTrend.to.price
-            : null,
-    }))
-  }, [visibleChartData, visibleTrendLines])
+  const chartRenderData = visibleChartData
 
   const plotWidth = useCallback(() => {
     const rect = chartWrapRef.current?.getBoundingClientRect()
@@ -764,20 +746,6 @@ export function JournalStockChartView({
               legendType="none"
             />
             <CandlestickSeries data={chartRenderData} region={region} />
-            {visibleTrendLines?.closeTrend && (
-              <Line
-                type="linear"
-                dataKey="closeTrendLine"
-                stroke="#64748b"
-                strokeWidth={1.5}
-                strokeDasharray="7 5"
-                dot={false}
-                activeDot={false}
-                connectNulls
-                isAnimationActive={false}
-                legendType="none"
-              />
-            )}
             {MA_PERIODS.filter((period) => visibleMa.has(period)).map((period) => (
               <Line
                 key={period}
@@ -790,10 +758,16 @@ export function JournalStockChartView({
                 name={`${period}일`}
               />
             ))}
-            {visibleTrendLines?.extremeTrend || visibleTrendLines?.finalTrend ? (
+            {visibleTrendLines &&
+            (visibleTrendLines.closeTrend ||
+              visibleTrendLines.extremeTrend ||
+              visibleTrendLines.finalTrend) ? (
               <TrendLinesChartLayer
-                extremeTrend={visibleTrendLines?.extremeTrend}
-                finalTrend={visibleTrendLines?.finalTrend}
+                closeTrend={visibleTrendLines.closeTrend}
+                extremeTrend={visibleTrendLines.extremeTrend}
+                showFinalTrend={Boolean(visibleTrendLines.finalTrend)}
+                spanFrom={visibleChartData[0]?.date}
+                spanTo={visibleChartData[visibleChartData.length - 1]?.date}
               />
             ) : null}
             {srLines.map((line) => (
