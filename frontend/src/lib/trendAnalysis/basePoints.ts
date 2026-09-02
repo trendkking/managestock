@@ -35,54 +35,117 @@ function isFallingCount(curr: ChartPricePoint, prev: ChartPricePoint): boolean {
 }
 
 /**
- * 멈춰진 시간: 카운트 조건 미충족 봉은 건너뜀 (리셋하지 않음).
- * 자기 포함 좌측에서 상승카운팅 n회를 모은다.
+ * HBP: 상승카운팅이 3 형성된 뒤, 우측에서 하락카운팅 3이 형성될 때 확정.
+ * - 상승 미충족 = 멈춰진 시간 (카운트 유지)
+ * - 상승 3 이후 고점 재갱신 시 후보를 그 봉으로 이동
+ * - 하락 3 확정 시에만 HBP 1개 생성 후 리셋
  */
-function hasLeftRisingCounts(data: ChartPricePoint[], index: number, count: number): boolean {
-  if (index < 1) return false
-  if (!isRisingCount(data[index], data[index - 1])) return false
+function findHighBasePoints(data: ChartPricePoint[], count: number): BasePoint[] {
+  const points: BasePoint[] = []
+  let rising = 0
+  let candidate: number | null = null
+  let falling = 0
 
-  let found = 0
-  for (let j = index; j >= 1 && found < count; j -= 1) {
-    if (isRisingCount(data[j], data[j - 1])) found += 1
+  for (let i = 1; i < data.length; i += 1) {
+    const up = isRisingCount(data[i], data[i - 1])
+    const down = isFallingCount(data[i], data[i - 1])
+
+    if (candidate === null) {
+      if (up) {
+        rising += 1
+        if (rising === count) {
+          candidate = i
+          falling = 0
+        }
+      }
+      // 멈춰진 시간: rising 유지
+      continue
+    }
+
+    // 상승 3 형성 후 — 정점 갱신 또는 하락 카운팅
+    if (up) {
+      candidate = i
+      falling = 0
+      continue
+    }
+
+    if (down) {
+      falling += 1
+      if (falling === count) {
+        const candle = data[candidate]
+        points.push({
+          kind: 'hbp',
+          date: candle.date,
+          price: candleHigh(candle),
+          index: candidate,
+        })
+        rising = 0
+        candidate = null
+        falling = 0
+      }
+      continue
+    }
+
+    // 멈춰진 시간: candidate·falling 유지
   }
-  return found === count
-}
 
-/** 자기 포함 좌측에서 하락카운팅 n회 (멈춰진 시간 스킵) */
-function hasLeftFallingCounts(data: ChartPricePoint[], index: number, count: number): boolean {
-  if (index < 1) return false
-  if (!isFallingCount(data[index], data[index - 1])) return false
-
-  let found = 0
-  for (let j = index; j >= 1 && found < count; j -= 1) {
-    if (isFallingCount(data[j], data[j - 1])) found += 1
-  }
-  return found === count
-}
-
-/** 우측(자기 다음부터) 하락카운팅 n회 (멈춰진 시간 스킵) */
-function hasRightFallingCounts(data: ChartPricePoint[], index: number, count: number): boolean {
-  let found = 0
-  for (let j = index + 1; j < data.length && found < count; j += 1) {
-    if (isFallingCount(data[j], data[j - 1])) found += 1
-  }
-  return found === count
-}
-
-/** 우측(자기 다음부터) 상승카운팅 n회 (멈춰진 시간 스킵) */
-function hasRightRisingCounts(data: ChartPricePoint[], index: number, count: number): boolean {
-  let found = 0
-  for (let j = index + 1; j < data.length && found < count; j += 1) {
-    if (isRisingCount(data[j], data[j - 1])) found += 1
-  }
-  return found === count
+  return points
 }
 
 /**
- * High Base Point: 좌측(자기 포함) 상승카운팅 n + 우측 하락카운팅 n
- * Low Base Point: 좌측(자기 포함) 하락카운팅 n + 우측 상승카운팅 n
- * 카운트 사이에 멈춰진 시간(미충족 봉)이 있어도 됨
+ * LBP: 하락카운팅이 3 형성된 뒤, 우측에서 상승카운팅 3이 형성될 때 확정.
+ */
+function findLowBasePoints(data: ChartPricePoint[], count: number): BasePoint[] {
+  const points: BasePoint[] = []
+  let falling = 0
+  let candidate: number | null = null
+  let rising = 0
+
+  for (let i = 1; i < data.length; i += 1) {
+    const up = isRisingCount(data[i], data[i - 1])
+    const down = isFallingCount(data[i], data[i - 1])
+
+    if (candidate === null) {
+      if (down) {
+        falling += 1
+        if (falling === count) {
+          candidate = i
+          rising = 0
+        }
+      }
+      continue
+    }
+
+    if (down) {
+      candidate = i
+      rising = 0
+      continue
+    }
+
+    if (up) {
+      rising += 1
+      if (rising === count) {
+        const candle = data[candidate]
+        points.push({
+          kind: 'lbp',
+          date: candle.date,
+          price: candleLow(candle),
+          index: candidate,
+        })
+        falling = 0
+        candidate = null
+        rising = 0
+      }
+      continue
+    }
+  }
+
+  return points
+}
+
+/**
+ * High Base Point: 좌측 상승 3 형성 + 우측 하락 3 형성 시에만
+ * Low Base Point: 좌측 하락 3 형성 + 우측 상승 3 형성 시에만
  */
 export function findBasePoints(
   data: ChartPricePoint[],
@@ -90,28 +153,8 @@ export function findBasePoints(
 ): BasePoint[] {
   if (data.length < 2) return []
 
-  const points: BasePoint[] = []
-
-  for (let i = 1; i < data.length - 1; i += 1) {
-    const candle = data[i]
-    if (hasLeftRisingCounts(data, i, count) && hasRightFallingCounts(data, i, count)) {
-      points.push({
-        kind: 'hbp',
-        date: candle.date,
-        price: candleHigh(candle),
-        index: i,
-      })
-    }
-    if (hasLeftFallingCounts(data, i, count) && hasRightRisingCounts(data, i, count)) {
-      points.push({
-        kind: 'lbp',
-        date: candle.date,
-        price: candleLow(candle),
-        index: i,
-      })
-    }
-  }
-
+  const points = [...findHighBasePoints(data, count), ...findLowBasePoints(data, count)]
+  points.sort((a, b) => a.index - b.index || a.kind.localeCompare(b.kind))
   return points
 }
 
