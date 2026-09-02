@@ -7,8 +7,10 @@ import {
 import { StockSearchField } from '@/components/features/journal/StockSearchField'
 import { useJournalStockChart } from '@/components/features/journal/useJournalStockChart'
 import { TREND_CHART_FETCH_MONTHS, TREND_CHART_INITIAL_VISIBLE_BARS } from '@/lib/journalStockChart'
+import { BasePointControls } from '@/components/features/trend/BasePointControls'
 import { TrendLineControls } from '@/components/features/trend/TrendLineControls'
 import { TrendIndicatorPanels } from '@/components/features/trend/TrendIndicatorPanels'
+import type { BasePointVisibility } from '@/lib/trendAnalysis/basePoints'
 import type { TrendLineVisibility } from '@/lib/trendAnalysis/trendLines'
 import { Card, CardContent } from '@/components/ui/Card'
 
@@ -58,6 +60,10 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
     extremeTrend: true,
     finalTrend: true,
   })
+  const [basePointVisibility, setBasePointVisibility] = useState<BasePointVisibility>({
+    hbp: true,
+    lbp: true,
+  })
   const chart = useJournalStockChart(stockCode, {
     defaultVisibleMa: [],
     enableSrLines: false,
@@ -80,6 +86,10 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
 
   const toggleTrendLine = (key: keyof TrendLineVisibility) => {
     setTrendLineVisibility((prev) => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  const toggleBasePoint = (key: keyof BasePointVisibility) => {
+    setBasePointVisibility((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
   return (
@@ -120,6 +130,12 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
               className="border-b border-slate-100 pb-4"
             />
 
+            <BasePointControls
+              visibility={basePointVisibility}
+              onToggle={toggleBasePoint}
+              className="border-b border-slate-100 pb-4"
+            />
+
             <TrendIndicatorPanels placement="above" context={indicatorContext} />
 
             <JournalStockChartView
@@ -129,6 +145,7 @@ export function TrendAnalysisWorkspace({ defaultStock }: TrendAnalysisWorkspaceP
               wheelZoomRequiresModifier={false}
               hintStyle="trend"
               trendLineVisibility={trendLineVisibility}
+              basePointVisibility={basePointVisibility}
             />
 
             <TrendIndicatorPanels placement="below" context={indicatorContext} />

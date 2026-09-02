@@ -11,6 +11,7 @@ import {
 } from 'recharts'
 import { Loader2 } from 'lucide-react'
 import { CandlestickSeries } from '@/components/features/journal/CandlestickLayer'
+import { BasePointsChartLayer } from '@/components/features/trend/BasePointsChartLayer'
 import { TrendLinesChartLayer } from '@/components/features/trend/TrendLinesChartLayer'
 import {
   CHART_MARGIN,
@@ -34,6 +35,12 @@ import {
   dateFromPlotX,
   plotXFromCandleIndex,
 } from '@/lib/journalStockChart'
+import {
+  filterBasePointsByDates,
+  filterBasePointsByVisibility,
+  findBasePoints,
+  type BasePointVisibility,
+} from '@/lib/trendAnalysis/basePoints'
 import {
   computeVisibleTrendLines,
   filterVisibleTrendLines,
@@ -280,6 +287,8 @@ type JournalStockChartViewProps = {
   hintStyle?: 'journal' | 'trend'
   /** 설정 시 보이는 구간 기준 추세선 표시 (추세분석) */
   trendLineVisibility?: TrendLineVisibility
+  /** 설정 시 HBP/LBP 표시 (추세분석) */
+  basePointVisibility?: BasePointVisibility
 }
 
 export function JournalStockChartView({
@@ -294,6 +303,7 @@ export function JournalStockChartView({
   wheelZoomRequiresModifier = true,
   hintStyle = 'journal',
   trendLineVisibility,
+  basePointVisibility,
 }: JournalStockChartViewProps) {
   const chartWrapRef = useRef<HTMLDivElement>(null)
   const [isPanning, setIsPanning] = useState(false)
@@ -335,6 +345,17 @@ export function JournalStockChartView({
     const computed = computeVisibleTrendLines(visibleChartData)
     return filterVisibleTrendLines(computed, trendLineVisibility)
   }, [trendLineVisibility, visibleChartData, viewport])
+
+  const visibleBasePoints = useMemo(() => {
+    if (!basePointVisibility) return []
+    if (!basePointVisibility.hbp && !basePointVisibility.lbp) return []
+    const all = findBasePoints(priceData)
+    const visibleDates = new Set(visibleChartData.map((row) => row.date))
+    return filterBasePointsByVisibility(
+      filterBasePointsByDates(all, visibleDates),
+      basePointVisibility,
+    )
+  }, [basePointVisibility, priceData, visibleChartData, viewport])
 
   const chartRenderData = visibleChartData
 
@@ -770,6 +791,7 @@ export function JournalStockChartView({
                 spanTo={visibleChartData[visibleChartData.length - 1]?.date}
               />
             ) : null}
+            {visibleBasePoints.length > 0 && <BasePointsChartLayer points={visibleBasePoints} />}
             {srLines.map((line) => (
               <ReferenceLine
                 key={line.id}
