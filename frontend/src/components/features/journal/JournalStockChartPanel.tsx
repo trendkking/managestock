@@ -38,6 +38,8 @@ import {
 import {
   filterBasePointsByDates,
   filterBasePointsByVisibility,
+  filterCountMarksByDates,
+  filterCountMarksByVisibility,
   findBasePoints,
   type BasePointVisibility,
 } from '@/lib/trendAnalysis/basePoints'
@@ -346,16 +348,25 @@ export function JournalStockChartView({
     return filterVisibleTrendLines(computed, trendLineVisibility)
   }, [trendLineVisibility, visibleChartData, viewport])
 
-  const visibleBasePoints = useMemo(() => {
-    if (!basePointVisibility) return []
-    if (!basePointVisibility.hbp && !basePointVisibility.lbp) return []
+  const visibleBasePointAnalysis = useMemo(() => {
+    if (!basePointVisibility) return { points: [], countMarks: [] }
+    if (!basePointVisibility.hbp && !basePointVisibility.lbp) return { points: [], countMarks: [] }
     const all = findBasePoints(priceData)
     const visibleDates = new Set(visibleChartData.map((row) => row.date))
-    return filterBasePointsByVisibility(
-      filterBasePointsByDates(all, visibleDates),
-      basePointVisibility,
-    )
+    return {
+      points: filterBasePointsByVisibility(
+        filterBasePointsByDates(all.points, visibleDates),
+        basePointVisibility,
+      ),
+      countMarks: filterCountMarksByVisibility(
+        filterCountMarksByDates(all.countMarks, visibleDates),
+        basePointVisibility,
+      ),
+    }
   }, [basePointVisibility, priceData, visibleChartData, viewport])
+
+  const visibleBasePoints = visibleBasePointAnalysis.points
+  const visibleCountMarks = visibleBasePointAnalysis.countMarks
 
   const chartRenderData = visibleChartData
 
@@ -791,7 +802,9 @@ export function JournalStockChartView({
                 spanTo={visibleChartData[visibleChartData.length - 1]?.date}
               />
             ) : null}
-            {visibleBasePoints.length > 0 && <BasePointsChartLayer points={visibleBasePoints} />}
+            {(visibleBasePoints.length > 0 || visibleCountMarks.length > 0) && (
+              <BasePointsChartLayer points={visibleBasePoints} countMarks={visibleCountMarks} />
+            )}
             {srLines.map((line) => (
               <ReferenceLine
                 key={line.id}

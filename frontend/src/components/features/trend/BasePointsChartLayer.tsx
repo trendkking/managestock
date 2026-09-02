@@ -1,15 +1,19 @@
 import { useId } from 'react'
 import { usePlotArea, useXAxisScale, useYAxisScale } from 'recharts'
-import type { BasePoint } from '@/lib/trendAnalysis/basePoints'
+import type { BasePoint, CountMark } from '@/lib/trendAnalysis/basePoints'
 
 const HBP_COLOR = '#dc2626'
 const LBP_COLOR = '#2563eb'
+const RISING_COUNT_COLOR = '#dc2626'
+const FALLING_COUNT_COLOR = '#2563eb'
 const MARKER_OFFSET = 10
 const TRIANGLE_W = 7
 const TRIANGLE_H = 8
+const COUNT_OFFSET = 14
 
 type BasePointsChartLayerProps = {
   points: BasePoint[]
+  countMarks?: CountMark[]
 }
 
 function plotXY(
@@ -24,13 +28,14 @@ function plotXY(
   return { x, y }
 }
 
-/** HBP/LBP 마커 — 플롯 영역 안으로 클립 */
-export function BasePointsChartLayer({ points }: BasePointsChartLayerProps) {
+/** HBP/LBP 마커 + 상승/하락 카운팅 숫자 */
+export function BasePointsChartLayer({ points, countMarks = [] }: BasePointsChartLayerProps) {
   const clipId = useId().replace(/:/g, '')
   const plotArea = usePlotArea()
   const xScale = useXAxisScale()
   const yScale = useYAxisScale()
-  if (!xScale || !yScale || points.length === 0) return null
+  if (!xScale || !yScale) return null
+  if (points.length === 0 && countMarks.length === 0) return null
 
   const clipRect =
     plotArea != null
@@ -52,6 +57,28 @@ export function BasePointsChartLayer({ points }: BasePointsChartLayerProps) {
         </defs>
       )}
       <g clipPath={clipRect ? `url(#${clipId})` : undefined}>
+        {countMarks.map((mark) => {
+          const xy = plotXY(xScale, yScale, mark.date, mark.price)
+          if (!xy) return null
+          const isRising = mark.direction === 'rising'
+          const color = isRising ? RISING_COUNT_COLOR : FALLING_COUNT_COLOR
+          const labelY = isRising ? xy.y - COUNT_OFFSET : xy.y + COUNT_OFFSET + 4
+
+          return (
+            <text
+              key={`count-${mark.source}-${mark.direction}-${mark.count}-${mark.date}-${mark.index}`}
+              x={xy.x}
+              y={labelY}
+              textAnchor="middle"
+              fill={color}
+              fontSize={11}
+              fontWeight={700}
+            >
+              {mark.count}
+            </text>
+          )
+        })}
+
         {points.map((point) => {
           const xy = plotXY(xScale, yScale, point.date, point.price)
           if (!xy) return null
@@ -68,7 +95,13 @@ export function BasePointsChartLayer({ points }: BasePointsChartLayerProps) {
           return (
             <g key={`${point.kind}-${point.date}-${point.index}`}>
               <circle cx={xy.x} cy={xy.y} r={3.5} fill={color} stroke="#fff" strokeWidth={1.25} />
-              <polygon points={pointsAttr} fill={color} stroke="#fff" strokeWidth={1} strokeLinejoin="round" />
+              <polygon
+                points={pointsAttr}
+                fill={color}
+                stroke="#fff"
+                strokeWidth={1}
+                strokeLinejoin="round"
+              />
               <text
                 x={xy.x}
                 y={labelY}
