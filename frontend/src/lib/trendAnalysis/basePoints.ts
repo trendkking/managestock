@@ -90,8 +90,10 @@ function pushFallingMarks(
 }
 
 /**
- * HBP: 상승 3 형성 후 하락 3 형성 시 확정.
- * 카운팅 숫자는 최대 3에서 멈춤 (이후 고점 갱신은 3번 라벨만 이동).
+ * HBP:
+ * - 상승카운팅 1→2→3 (3에서 끝, 이후 상승은 카운트/후보 이동 없음)
+ * - 상승 3 형성과 동시에 하락카운팅 시작 (같은 봉이 하락조건이면 1, 아니면 다음 봉부터)
+ * - 하락 3 형성 시 HBP 확정
  */
 function findHighBasePoints(data: ChartPricePoint[], count: number): BasePointAnalysis {
   const points: BasePoint[] = []
@@ -107,6 +109,32 @@ function findHighBasePoints(data: ChartPricePoint[], count: number): BasePointAn
     if (fallingIndexes.length > 0) pushFallingMarks(countMarks, data, fallingIndexes, 'hbp')
   }
 
+  const confirmHbp = () => {
+    if (candidate == null || fallingIndexes.length < count) return
+    const candle = data[candidate]
+    points.push({
+      kind: 'hbp',
+      date: candle.date,
+      price: candleHigh(candle),
+      index: candidate,
+    })
+    pushRisingMarks(countMarks, data, risingIndexes, 'hbp')
+    pushFallingMarks(countMarks, data, fallingIndexes, 'hbp')
+    rising = 0
+    risingIndexes = []
+    candidate = null
+    falling = 0
+    fallingIndexes = []
+  }
+
+  /** 하락카운팅 1건 반영. 3 되면 HBP 확정 */
+  const applyFalling = (index: number) => {
+    if (falling >= count) return
+    falling += 1
+    fallingIndexes.push(index)
+    if (falling === count) confirmHbp()
+  }
+
   for (let i = 1; i < data.length; i += 1) {
     const up = isRisingCount(data[i], data[i - 1])
     const down = isFallingCount(data[i], data[i - 1])
@@ -116,44 +144,24 @@ function findHighBasePoints(data: ChartPricePoint[], count: number): BasePointAn
         rising += 1
         if (rising <= count) risingIndexes.push(i)
         if (rising === count) {
+          // 상승 3에서 끝 → 후보 고정, 동시에 하락카운팅 시작
           candidate = i
           falling = 0
           fallingIndexes = []
+          if (down) applyFalling(i)
         }
       }
+      // 멈춰진 시간: rising 유지
       continue
     }
 
-    if (up) {
-      // 3에서 멈춤 — 추가 카운트 없이 정점(3번 라벨)만 이동
-      candidate = i
-      if (risingIndexes.length === count) risingIndexes[count - 1] = i
-      falling = 0
-      fallingIndexes = []
-      continue
-    }
-
+    // 상승 3 이후: 더 이상 상승카운트/후보 이동 없음. 하락만 센다.
     if (down) {
-      falling += 1
-      if (falling <= count) fallingIndexes.push(i)
-      if (falling === count) {
-        const candle = data[candidate]
-        points.push({
-          kind: 'hbp',
-          date: candle.date,
-          price: candleHigh(candle),
-          index: candidate,
-        })
-        pushRisingMarks(countMarks, data, risingIndexes, 'hbp')
-        pushFallingMarks(countMarks, data, fallingIndexes, 'hbp')
-        rising = 0
-        risingIndexes = []
-        candidate = null
-        falling = 0
-        fallingIndexes = []
-      }
+      applyFalling(i)
       continue
     }
+
+    // 멈춰진 시간 (하락 미충족): falling 유지
   }
 
   flushInProgress()
@@ -161,8 +169,10 @@ function findHighBasePoints(data: ChartPricePoint[], count: number): BasePointAn
 }
 
 /**
- * LBP: 하락 3 형성 후 상승 3 형성 시 확정.
- * 카운팅 숫자는 최대 3에서 멈춤.
+ * LBP:
+ * - 하락카운팅 1→2→3 (3에서 끝)
+ * - 하락 3 형성과 동시에 상승카운팅 시작
+ * - 상승 3 형성 시 LBP 확정
  */
 function findLowBasePoints(data: ChartPricePoint[], count: number): BasePointAnalysis {
   const points: BasePoint[] = []
@@ -178,6 +188,31 @@ function findLowBasePoints(data: ChartPricePoint[], count: number): BasePointAna
     if (risingIndexes.length > 0) pushRisingMarks(countMarks, data, risingIndexes, 'lbp')
   }
 
+  const confirmLbp = () => {
+    if (candidate == null || risingIndexes.length < count) return
+    const candle = data[candidate]
+    points.push({
+      kind: 'lbp',
+      date: candle.date,
+      price: candleLow(candle),
+      index: candidate,
+    })
+    pushFallingMarks(countMarks, data, fallingIndexes, 'lbp')
+    pushRisingMarks(countMarks, data, risingIndexes, 'lbp')
+    falling = 0
+    fallingIndexes = []
+    candidate = null
+    rising = 0
+    risingIndexes = []
+  }
+
+  const applyRising = (index: number) => {
+    if (rising >= count) return
+    rising += 1
+    risingIndexes.push(index)
+    if (rising === count) confirmLbp()
+  }
+
   for (let i = 1; i < data.length; i += 1) {
     const up = isRisingCount(data[i], data[i - 1])
     const down = isFallingCount(data[i], data[i - 1])
@@ -190,38 +225,15 @@ function findLowBasePoints(data: ChartPricePoint[], count: number): BasePointAna
           candidate = i
           rising = 0
           risingIndexes = []
+          if (up) applyRising(i)
         }
       }
       continue
     }
 
-    if (down) {
-      candidate = i
-      if (fallingIndexes.length === count) fallingIndexes[count - 1] = i
-      rising = 0
-      risingIndexes = []
-      continue
-    }
-
+    // 하락 3 이후: 상승만 센다
     if (up) {
-      rising += 1
-      if (rising <= count) risingIndexes.push(i)
-      if (rising === count) {
-        const candle = data[candidate]
-        points.push({
-          kind: 'lbp',
-          date: candle.date,
-          price: candleLow(candle),
-          index: candidate,
-        })
-        pushFallingMarks(countMarks, data, fallingIndexes, 'lbp')
-        pushRisingMarks(countMarks, data, risingIndexes, 'lbp')
-        falling = 0
-        fallingIndexes = []
-        candidate = null
-        rising = 0
-        risingIndexes = []
-      }
+      applyRising(i)
       continue
     }
   }
