@@ -34,57 +34,65 @@ function isFallingCount(curr: ChartPricePoint, prev: ChartPricePoint): boolean {
   return candleLow(curr) <= candleLow(prev)
 }
 
-/** 자기 포함 좌측으로 연속 상승카운팅 n회 */
+/**
+ * 멈춰진 시간: 카운트 조건 미충족 봉은 건너뜀 (리셋하지 않음).
+ * 자기 포함 좌측에서 상승카운팅 n회를 모은다.
+ */
 function hasLeftRisingCounts(data: ChartPricePoint[], index: number, count: number): boolean {
-  if (index < count) return false
-  for (let k = 0; k < count; k += 1) {
-    const at = index - k
-    if (!isRisingCount(data[at], data[at - 1])) return false
+  if (index < 1) return false
+  if (!isRisingCount(data[index], data[index - 1])) return false
+
+  let found = 0
+  for (let j = index; j >= 1 && found < count; j -= 1) {
+    if (isRisingCount(data[j], data[j - 1])) found += 1
   }
-  return true
+  return found === count
 }
 
-/** 자기 포함 좌측으로 연속 하락카운팅 n회 */
+/** 자기 포함 좌측에서 하락카운팅 n회 (멈춰진 시간 스킵) */
 function hasLeftFallingCounts(data: ChartPricePoint[], index: number, count: number): boolean {
-  if (index < count) return false
-  for (let k = 0; k < count; k += 1) {
-    const at = index - k
-    if (!isFallingCount(data[at], data[at - 1])) return false
+  if (index < 1) return false
+  if (!isFallingCount(data[index], data[index - 1])) return false
+
+  let found = 0
+  for (let j = index; j >= 1 && found < count; j -= 1) {
+    if (isFallingCount(data[j], data[j - 1])) found += 1
   }
-  return true
+  return found === count
 }
 
-/** 우측으로 연속 하락카운팅 n회 (자기 다음부터) */
+/** 우측(자기 다음부터) 하락카운팅 n회 (멈춰진 시간 스킵) */
 function hasRightFallingCounts(data: ChartPricePoint[], index: number, count: number): boolean {
-  if (index + count >= data.length) return false
-  for (let k = 1; k <= count; k += 1) {
-    if (!isFallingCount(data[index + k], data[index + k - 1])) return false
+  let found = 0
+  for (let j = index + 1; j < data.length && found < count; j += 1) {
+    if (isFallingCount(data[j], data[j - 1])) found += 1
   }
-  return true
+  return found === count
 }
 
-/** 우측으로 연속 상승카운팅 n회 (자기 다음부터) */
+/** 우측(자기 다음부터) 상승카운팅 n회 (멈춰진 시간 스킵) */
 function hasRightRisingCounts(data: ChartPricePoint[], index: number, count: number): boolean {
-  if (index + count >= data.length) return false
-  for (let k = 1; k <= count; k += 1) {
-    if (!isRisingCount(data[index + k], data[index + k - 1])) return false
+  let found = 0
+  for (let j = index + 1; j < data.length && found < count; j += 1) {
+    if (isRisingCount(data[j], data[j - 1])) found += 1
   }
-  return true
+  return found === count
 }
 
 /**
  * High Base Point: 좌측(자기 포함) 상승카운팅 n + 우측 하락카운팅 n
  * Low Base Point: 좌측(자기 포함) 하락카운팅 n + 우측 상승카운팅 n
+ * 카운트 사이에 멈춰진 시간(미충족 봉)이 있어도 됨
  */
 export function findBasePoints(
   data: ChartPricePoint[],
   count: number = DEFAULT_COUNT,
 ): BasePoint[] {
-  if (data.length < count * 2 + 1) return []
+  if (data.length < 2) return []
 
   const points: BasePoint[] = []
 
-  for (let i = count; i < data.length - count; i += 1) {
+  for (let i = 1; i < data.length - 1; i += 1) {
     const candle = data[i]
     if (hasLeftRisingCounts(data, i, count) && hasRightFallingCounts(data, i, count)) {
       points.push({
